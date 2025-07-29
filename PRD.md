@@ -1,134 +1,209 @@
-🧾 Product Requirements Document (PRD)
-📛 Product Name Fusion Jar
-CrossChain SIP (Systematic Investment Platform)A gamified, gasless, cross-chain micro-investment dApp built on 1inch Fusion+, supporting recurring $1–$10 investments between Ethereum and NEAR.
+# 🧾 Product Requirements Document (PRD)
 
-🎯 Problem Statement
-For retail users, investing in cross-chain DeFi is:
-* Too complex (bridges, wallets, gas fees)
-* Too expensive (gas costs outweigh small investments)
-* Not sticky or engaging (no incentives, UX barriers)
-Retail users want to invest small amounts regularly, across chains like Ethereum and NEAR, without needing to understand complex DeFi infrastructure.
+## 📛 Fusion Jar
 
-🌟 Solution Overview
-This product is a gasless, recurring, cross-chain investment platform that:
-* Lets users schedule small recurring swaps ($1–$10) between ETH ↔ NEAR
-* Uses 1inch Fusion+ to handle cross-chain execution (intent-based, resolver executed)
-* Shows portfolio performance
-* Adds gamification to incentivize saving (XP, streaks, badges)
-* Surfaces transparency of swap execution (who fulfilled, when, at what cost)
+**Fusion Jar**
+*A gamified, gasless, cross-chain micro-investment platform using 1inch Fusion+.*
 
-🛠️ Key Features
-1. Wallet Integration
-* Support Ethereum (via MetaMask)
-* Support NEAR (via NEAR Wallet Adapter)
-* Show connected wallet addresses
+---
 
-2. Create Investment Intent
-Form where users can define:
-* Source Token (e.g., ETH, USDC)
-* Target Token on NEAR (e.g., REF, USDT)
-* Amount (e.g., $5)
-* Frequency (e.g., daily, weekly)
-* Max Fee Tolerance (% slippage or resolver fee)
-System saves this as a recurring intent in the backend.
+## 🎯 Problem Statement
 
-3. Intent Execution via 1inch Fusion+
-* Use 1inch Fusion+ to generate and sign off-chain intent
-* Monitor available resolvers to pick up and execute swap
-* Ensure swap is atomic, using hashlock/timelock (Fusion handles this)
-* Send confirmation back to backend after successful execution
+For retail users in DeFi, investing small amounts regularly across EVM chains (e.g., Ethereum, Base, Polygon) is:
 
-4. Recurring Intent Scheduling Engine (Backend)
-* Cron job or loop-based task runner (simulated if needed)
-* Triggers swap intents based on frequency
-* Logs status (pending, fulfilled, skipped, failed)
-* Optional: Retry if gas or fee exceeds threshold
+* ❌ Too complex (bridging, multiple tokens, chains, fees)
+* ❌ Too expensive for small amounts (gas fees outweigh gains)
+* ❌ Not engaging (no retention or habit-building)
 
-5. Portfolio Tracking UI
-* Aggregate token balances across chains (via wallet RPC or API)
-* Display:
-    * Total amount invested
-    * Current value
-    * ROI %
-    * Pie chart of allocations
-    * Time-series chart (investments over time)
+**Users want:**
 
-6. Resolver Transparency Dashboard
-* For each executed swap, show:
-    * Resolver wallet address
-    * Execution time
-    * Execution fee/slippage
-    * Route taken
-* Optional: 1inch analytics if public API allows
+* A simple, recurring way to invest \$1–\$10
+* A gasless experience
+* Motivation to stay consistent (gamified UX)
 
-7. Gamification Layer
-* Users earn XP for:
-    * Each successful investment
-    * Streaks (e.g., 3 weeks in a row)
-    * Milestones (e.g., saved $50)
-* Badges/unlocks (basic SVG/UI visuals)
-* Optional: Leaderboard or community metrics
+---
 
-8. Notifications (optional / stretch)
-* Telegram, Email, or frontend toast notifications:
-    * When investment is successful
-    * When resolver fails
-    * When user breaks streak
+## 🌟 Solution Overview
 
-💻 Tech Stack
-Layer	Tool
-Frontend	Next.js, Tailwind, Wagmi
-Wallets	MetaMask, NEAR Wallet
-API Layer	1inch Fusion+, Dev Portal
-Backend	Node.js + Express
-Scheduling	node-cron or BullMQ
-DB (optional)	SQLite or Firebase
-Hosting	Vercel + Render/Fly.io
-🧪 API Interactions (Examples)
-1inch Fusion+ Flow:
-* GET /quote → Get best swap route
-* POST /intent → Create/schedule signed swap intent
-* Swap monitored via webhook or polling
+**Fusion Jar** is a gasless, recurring cross-chain investment dApp that:
 
-🧑‍🎨 UX Layout (Minimalist MVP)
-1. Home
-    * Hero: “Start Your $5/Week DeFi Journey”
-    * Button: “Connect Wallet”
-2. Create Investment
-    * Dropdowns: Source token, Target token
-    * Input: Amount, Frequency
-    * Button: “Create Recurring Investment”
-3. Portfolio
-    * Chart of total invested & current value
-    * XP bar
-    * Last 5 investments + resolver info
-4. Resolver Dashboard
-    * Table:
-        * Resolver Address
-        * Time Taken
-        * Fee Paid
-        * Swap Hash (if available)
+* Automates micro-investments (\$1–\$10) across EVM chains
+* Uses **1inch Fusion+** to create off-chain swap intents
+* Simulates or triggers intent execution (via resolvers)
+* Tracks portfolio performance
+* Uses **XP, streaks, and badges** to reward consistent savers
 
-📈 Success Metrics (Hackathon MVP)
-* Successful gasless cross-chain swap via Fusion+
-* Recurring swap logic triggers and executes
-* Portfolio reflects invested value
-* Resolver stats visible in frontend
-* Basic gamified UX elements work (XP, streak counter)
+---
 
-📋 Out of Scope (For MVP)
-* Multi-user auth system
-* On-chain staking/farming after swap
-* Deep resolver analytics beyond public API
-* Mobile app
-* Fiat onboarding
+## 🛠️ Key Features
 
-🧩 Example User Flow (E2E)
-1. User connects MetaMask and NEAR Wallet
-2. Sets: “Invest $5 every 2 days from ETH → REF”
-3. Platform stores intent + config
-4. Backend triggers intent → resolver fulfills it
-5. User sees confirmation + portfolio updates
-6. XP increases → "3-Day Streak Badge Unlocked"
+### 1. Wallet Integration
 
+* ✅ MetaMask (via RainbowKit)
+* ✅ Show connected wallet address
+* ❌ No need for full login system
+
+---
+
+### 2. Create Investment Intent
+
+* Input form:
+
+  * [ ] Source Token + Chain
+  * [ ] Target Token + Chain
+  * [ ] Amount (\$1–\$10)
+  * [ ] Frequency (Daily, Weekly)
+  * [ ] Max fee/slippage tolerance
+* Backend saves config as recurring intent
+
+---
+
+### 3. Fusion+ Swap Integration
+
+* [ ] Fetch quote via `GET /quote`
+* [ ] Sign off-chain swap intent via `POST /intent`
+* [ ] Simulate resolver picking up and fulfilling
+* [ ] Log execution details (resolver, time, fee)
+
+---
+
+### 4. Recurring Investment Engine
+
+* [ ] `node-cron` or simple timer triggers based on frequency
+* [ ] Marks investment status: pending, fulfilled, skipped, failed
+* [ ] Handles retries or skipped executions
+
+---
+
+### 5. Portfolio Tracking UI
+
+* [ ] Show total invested, current value, ROI %
+* [ ] Pie chart of token allocations
+* [ ] Investment history
+* [ ] Optional: Pull token prices via CoinGecko or mock
+
+---
+
+### 6. Resolver Transparency Dashboard
+
+* [ ] Table view of each investment
+
+  * Resolver address
+  * Execution time
+  * Fee/slippage
+  * Swap transaction hash (if available)
+
+---
+
+### 7. Gamification Layer
+
+* [ ] XP system (+10 XP per investment)
+* [ ] Streak tracker (daily or weekly)
+* [ ] Milestone badges (e.g., "Saved \$50")
+* [ ] Optional: Leaderboard (mocked or local)
+
+---
+
+### 8. Notifications (Stretch Goal)
+
+* [ ] Toast notifications in frontend
+* [ ] Optional: Telegram/email webhook triggers
+
+---
+
+## 💻 Tech Stack
+
+| Layer     | Tool                             |
+| --------- | -------------------------------- |
+| Frontend  | Next.js, Tailwind, Wagmi         |
+| Wallets   | MetaMask (RainbowKit)            |
+| Backend   | Node.js (or Next.js API routes)  |
+| DB        | supabase  |
+| Scheduler | node-cron / setInterval          |
+| API       | 1inch Fusion+, Quote, Token APIs |
+| Hosting   | Vercel + Render or Fly.io        |
+
+---
+
+## 🧪 API Interactions
+
+### 1inch Fusion+ Flow:
+
+* `GET /quote` – best route for token+chain pair
+* `POST /intent` – sign and submit off-chain swap intent
+* Simulated resolver picks up and executes swap
+* Confirmation data sent back to backend
+
+---
+
+## 🧑‍🎨 UX Layout
+
+### Home (`/`)
+
+* Hero: “Start Your \$5/Week DeFi Journey”
+* CTA: “Connect Wallet”
+
+### Create Investment (`/create`)
+
+* Form with dropdowns: source/target tokens + chains
+* Input: Amount, Frequency, Fee Tolerance
+* Button: “Create Recurring Investment”
+
+### Portfolio (`/portfolio`)
+
+* Total invested + ROI %
+* XP bar + Streak status
+* Charts + investment history
+
+### Resolver Dashboard (`/resolvers`)
+
+* Table with:
+
+  * Resolver address
+  * Time of execution
+  * Fee paid
+  * Swap hash
+
+---
+
+## 📈 Success Metrics (MVP)
+
+* ✅ Recurring swap intent created and stored
+* ✅ Fusion+ intent posted and signed
+* ✅ Simulated or real execution completed
+* ✅ Portfolio dashboard shows updated data
+* ✅ XP/streak system tracks progress
+* ✅ UI/UX is clean, minimal, and interactive
+
+---
+
+## 📋 Out of Scope (For MVP)
+
+* Multi-user auth or login
+* Mobile app version
+* On-chain staking/farming
+* Full NEAR chain integration
+* Real resolver operation (we simulate for now)
+
+---
+
+## 🧩 Example User Flow
+
+1. User connects MetaMask
+2. Sets: “Invest \$5 every 2 days from ETH → USDC on Polygon”
+3. Platform stores investment intent
+4. Cron job simulates or triggers Fusion+ intent
+5. Backend logs resolver details
+6. Portfolio updates + XP gained
+7. User sees streaks, badges
+
+---
+
+## 🏆 Submission Track
+
+**Track 3: Build a Full dApp using 1inch APIs**
+
+* Deep integration with Fusion+, Quotes, Resolver data
+* Realistic dApp focused on onboarding real users
+* Unique UX angle (recurring DeFi + gamification)
 
