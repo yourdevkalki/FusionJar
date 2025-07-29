@@ -1,6 +1,6 @@
 import { http, createConfig } from "wagmi";
 import { mainnet, polygon, base } from "wagmi/chains";
-import { injected, metaMask, walletConnect } from "wagmi/connectors";
+import { injected, metaMask } from "wagmi/connectors";
 
 // Simple configuration for development without WalletConnect
 export const config = createConfig({

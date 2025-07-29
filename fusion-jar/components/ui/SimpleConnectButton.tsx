@@ -2,6 +2,7 @@
 
 import { useAccount, useConnect, useDisconnect } from "wagmi";
 import { useState } from "react";
+import type { Connector } from "wagmi";
 
 export function SimpleConnectButton() {
   const { address, isConnected } = useAccount();
@@ -9,7 +10,7 @@ export function SimpleConnectButton() {
   const { disconnect } = useDisconnect();
   const [isConnecting, setIsConnecting] = useState(false);
 
-  const handleConnect = async (connector: any) => {
+  const handleConnect = async (connector: Connector) => {
     setIsConnecting(true);
     try {
       await connect({ connector });

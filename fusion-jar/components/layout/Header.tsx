@@ -1,7 +1,15 @@
 "use client";
 
-import { SimpleConnectButton } from "@/components/ui/SimpleConnectButton";
+import dynamic from "next/dynamic";
 import Link from "next/link";
+
+const SimpleConnectButton = dynamic(
+  () =>
+    import("@/components/ui/SimpleConnectButton").then((mod) => ({
+      default: mod.SimpleConnectButton,
+    })),
+  { ssr: false }
+);
 
 export function Header() {
   return (
