@@ -30,10 +30,28 @@ export function Header() {
               Portfolio
             </Link>
             <Link
+              href="/analytics"
+              className="text-gray-700 hover:text-gray-900"
+            >
+              Analytics
+            </Link>
+            <Link
+              href="/gamification"
+              className="text-gray-700 hover:text-gray-900"
+            >
+              Gamification
+            </Link>
+            <Link
               href="/resolvers"
               className="text-gray-700 hover:text-gray-900"
             >
               Resolvers
+            </Link>
+            <Link
+              href="/scheduler"
+              className="text-gray-700 hover:text-gray-900"
+            >
+              Scheduler
             </Link>
           </nav>
           <SimpleConnectButton />

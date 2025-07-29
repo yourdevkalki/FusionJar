@@ -11,13 +11,18 @@ interface ScheduledInvestment {
   target_token: string;
   target_chain: number;
   amount_usd: number;
-  frequency: "daily" | "weekly";
-  last_execution?: string;
+  fee_tolerance: number;
+  frequency: string;
+  status: string;
+  user_signature?: string;
+  signature_timestamp?: string;
+  signature_expiry?: string;
 }
 
 class InvestmentScheduler {
   private static instance: InvestmentScheduler;
-  private isRunning = false;
+  private isRunning: boolean = false;
+  private cronJobs: cron.ScheduledTask[] = [];
 
   private constructor() {}
 
@@ -30,134 +35,158 @@ class InvestmentScheduler {
 
   async start() {
     if (this.isRunning) {
-      console.log("Scheduler is already running");
+      console.log("Investment Scheduler is already running");
       return;
     }
 
     this.isRunning = true;
     console.log("Starting Investment Scheduler...");
 
-    // Schedule daily investments at 9 AM UTC
-    cron.schedule("0 9 * * *", async () => {
+    // Daily investments at 9 AM UTC
+    const dailyJob = cron.schedule("0 9 * * *", async () => {
       console.log("Running daily investment scheduler...");
       await this.processScheduledInvestments("daily");
     });
 
-    // Schedule weekly investments on Monday at 9 AM UTC
-    cron.schedule("0 9 * * 1", async () => {
+    // Weekly investments on Monday at 9 AM UTC
+    const weeklyJob = cron.schedule("0 9 * * 1", async () => {
       console.log("Running weekly investment scheduler...");
       await this.processScheduledInvestments("weekly");
     });
 
     // Health check every hour
-    cron.schedule("0 * * * *", () => {
+    const healthJob = cron.schedule("0 * * * *", () => {
       console.log("Scheduler health check - Running normally");
     });
 
+    this.cronJobs = [dailyJob, weeklyJob, healthJob];
     console.log("Investment Scheduler started successfully");
   }
 
   async stop() {
+    if (!this.isRunning) {
+      console.log("Investment Scheduler is not running");
+      return;
+    }
+
+    this.cronJobs.forEach((job) => job.stop());
+    this.cronJobs = [];
     this.isRunning = false;
     console.log("Investment Scheduler stopped");
   }
 
   private async processScheduledInvestments(frequency: "daily" | "weekly") {
     try {
-      // Get all active investment intents for the given frequency
-      const { data: intents, error } = await supabase
+      console.log(`Processing ${frequency} investments...`);
+
+      // Get all active investments for this frequency
+      const { data: investments, error } = await supabase
         .from("investment_intents")
         .select("*")
-        .eq("status", "active")
-        .eq("frequency", frequency);
+        .eq("frequency", frequency)
+        .eq("status", "active");
 
       if (error) {
-        console.error("Error fetching investment intents:", error);
+        console.error("Error fetching investments:", error);
+        return;
+      }
+
+      if (!investments || investments.length === 0) {
+        console.log(`No ${frequency} investments found`);
         return;
       }
 
       console.log(
-        `Processing ${intents?.length || 0} ${frequency} investments`
+        `Found ${investments.length} ${frequency} investments to process`
       );
 
-      // Process each investment intent
-      for (const intent of intents || []) {
-        await this.processInvestmentIntent(intent);
+      // Process each investment
+      for (const investment of investments) {
+        await this.processInvestmentIntent(investment);
       }
     } catch (error) {
-      console.error("Error processing scheduled investments:", error);
+      console.error(`Error processing ${frequency} investments:`, error);
     }
   }
 
-  private async processInvestmentIntent(intent: any) {
+  private async processInvestmentIntent(intent: ScheduledInvestment) {
     try {
       console.log(
-        `Processing investment intent ${intent.id} for user ${intent.user_address}`
+        `Processing investment ${intent.id} for user ${intent.user_address}`
       );
 
-      // Check if we should skip this execution based on last execution time
+      // Check if we should skip this execution
       if (await this.shouldSkipExecution(intent)) {
-        console.log(`Skipping execution for intent ${intent.id} - too recent`);
+        console.log(`Skipping investment ${intent.id} - conditions not met`);
+        return;
+      }
+
+      // Check if user has provided a valid signature
+      if (
+        !intent.user_signature ||
+        !intent.signature_timestamp ||
+        !intent.signature_expiry
+      ) {
+        console.log(
+          `Investment ${intent.id} has no valid signature - skipping`
+        );
+        return;
+      }
+
+      // Check if signature has expired
+      const now = new Date();
+      const expiry = new Date(intent.signature_expiry);
+      if (now > expiry) {
+        console.log(`Investment ${intent.id} signature has expired - skipping`);
         return;
       }
 
       // Execute the investment
-      const executionResult = await executeInvestment(intent);
+      const result = await executeInvestment(intent);
 
-      if (executionResult.success) {
+      if (result.success) {
+        console.log(`Investment ${intent.id} executed successfully`);
+
         // Update gamification data
         await updateGamificationData(intent.user_address, {
           type: "investment_executed",
           amount: intent.amount_usd,
-          success: true,
         });
-
-        console.log(`Successfully executed investment ${intent.id}`);
       } else {
-        console.error(
-          `Failed to execute investment ${intent.id}:`,
-          executionResult.error
-        );
+        console.error(`Investment ${intent.id} failed:`, result.error);
       }
     } catch (error) {
-      console.error(`Error processing investment intent ${intent.id}:`, error);
+      console.error(`Error processing investment ${intent.id}:`, error);
     }
   }
 
-  private async shouldSkipExecution(intent: any): Promise<boolean> {
-    // Get the last execution for this intent
-    const { data: lastExecution } = await supabase
-      .from("investment_executions")
-      .select("created_at")
-      .eq("intent_id", intent.id)
-      .order("created_at", { ascending: false })
-      .limit(1);
+  private async shouldSkipExecution(
+    intent: ScheduledInvestment
+  ): Promise<boolean> {
+    // Add your custom logic here to determine if execution should be skipped
+    // For example:
+    // - Check if user has sufficient balance
+    // - Check if market conditions are favorable
+    // - Check if user has paused the investment
 
-    if (!lastExecution || lastExecution.length === 0) {
-      return false; // No previous execution, proceed
+    // For now, we'll just check if the investment is paused
+    if (intent.status !== "active") {
+      return true;
     }
 
-    const lastExecutionTime = new Date(lastExecution[0].created_at);
-    const now = new Date();
-    const hoursSinceLastExecution =
-      (now.getTime() - lastExecutionTime.getTime()) / (1000 * 60 * 60);
-
-    // Skip if less than 20 hours have passed (for daily) or 6 days (for weekly)
-    const minHours = intent.frequency === "daily" ? 20 : 6 * 24;
-    return hoursSinceLastExecution < minHours;
+    return false;
   }
 
-  // Manual trigger for testing
   async triggerExecution(frequency: "daily" | "weekly") {
     console.log(`Manually triggering ${frequency} execution...`);
     await this.processScheduledInvestments(frequency);
   }
 
-  // Get scheduler status
   getStatus() {
     return {
       isRunning: this.isRunning,
-      timestamp: new Date().toISOString(),
+      activeJobs: this.cronJobs.length,
+      lastUpdated: new Date().toISOString(),
     };
   }
 }

@@ -1,5 +1,6 @@
 import { supabase } from "./supabase";
-import { getBestQuote } from "./1inch";
+import { oneInchAPI } from "./1inch";
+import { ethers } from "ethers";
 
 interface ExecutionResult {
   success: boolean;
@@ -18,6 +19,107 @@ interface InvestmentIntent {
   target_chain: number;
   amount_usd: number;
   fee_tolerance: number;
+  user_signature?: string; // User's signature authorizing this execution
+  signature_timestamp?: string; // When the signature was created
+  signature_expiry?: string; // When the signature expires
+}
+
+// Helper function to verify user signature
+async function verifyUserSignature(
+  intent: InvestmentIntent,
+  userAddress: string
+): Promise<boolean> {
+  if (
+    !intent.user_signature ||
+    !intent.signature_timestamp ||
+    !intent.signature_expiry
+  ) {
+    return false;
+  }
+
+  // Check if signature has expired
+  const now = new Date();
+  const expiry = new Date(intent.signature_expiry);
+  if (now > expiry) {
+    console.log("User signature has expired");
+    return false;
+  }
+
+  try {
+    // Create the message that should have been signed
+    const message = createExecutionMessage(intent);
+
+    // Recover the signer address from the signature
+    const recoveredAddress = ethers.verifyMessage(
+      message,
+      intent.user_signature
+    );
+
+    // Verify the recovered address matches the user's address
+    return recoveredAddress.toLowerCase() === userAddress.toLowerCase();
+  } catch (error) {
+    console.error("Error verifying signature:", error);
+    return false;
+  }
+}
+
+// Create the message that users need to sign
+function createExecutionMessage(intent: InvestmentIntent): string {
+  return `I authorize FusionJar to execute my investment:
+  
+Investment ID: ${intent.id}
+Amount: $${intent.amount_usd}
+From: ${intent.source_token} (Chain: ${intent.source_chain})
+To: ${intent.target_token} (Chain: ${intent.target_chain})
+Fee Tolerance: ${intent.fee_tolerance}%
+Signature Expiry: ${intent.signature_expiry}
+
+By signing this message, I authorize FusionJar to execute this investment on my behalf within the specified parameters.`;
+}
+
+// Helper function to get the best quote using 1inch API
+async function getBestQuote(params: {
+  fromToken: string;
+  toToken: string;
+  fromChain: number;
+  toChain: number;
+  amount: string;
+  userAddress: string;
+}) {
+  try {
+    const quote = await oneInchAPI.getQuote({
+      src: params.fromToken,
+      dst: params.toToken,
+      amount: params.amount,
+      from: params.userAddress,
+      chainId: params.fromChain,
+    });
+
+    if (quote.error) {
+      return {
+        success: false,
+        error: quote.error,
+      };
+    }
+
+    // Calculate fee (this would need to be adjusted based on actual 1inch response structure)
+    const fee = quote.fee || "0";
+    const amountIn = quote.srcAmount || params.amount;
+    const amountOut = quote.dstAmount || "0";
+
+    return {
+      success: true,
+      amountIn,
+      amountOut,
+      fee,
+      resolver: quote.resolver || "1inch",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to get quote",
+    };
+  }
 }
 
 export async function executeInvestment(
@@ -28,7 +130,20 @@ export async function executeInvestment(
       `Executing investment ${intent.id} for user ${intent.user_address}`
     );
 
-    // Step 1: Get the best quote for the swap
+    // Step 1: Verify user signature and permissions
+    const hasValidSignature = await verifyUserSignature(
+      intent,
+      intent.user_address
+    );
+    if (!hasValidSignature) {
+      return {
+        success: false,
+        error:
+          "Invalid or missing user signature. User must sign to authorize this execution.",
+      };
+    }
+
+    // Step 2: Get the best quote for the swap
     const quote = await getBestQuote({
       fromToken: intent.source_token,
       toToken: intent.target_token,
@@ -45,7 +160,7 @@ export async function executeInvestment(
       };
     }
 
-    // Step 2: Check if the quote meets fee tolerance
+    // Step 3: Check if the quote meets fee tolerance
     const feePercentage =
       (parseFloat(quote.fee || "0") / intent.amount_usd) * 100;
     if (feePercentage > intent.fee_tolerance) {
@@ -57,7 +172,7 @@ export async function executeInvestment(
       };
     }
 
-    // Step 3: Create execution record
+    // Step 4: Create execution record
     const { data: execution, error: executionError } = await supabase
       .from("investment_executions")
       .insert({
@@ -84,11 +199,15 @@ export async function executeInvestment(
       };
     }
 
-    // Step 4: Execute the swap (this would integrate with actual resolver)
-    const swapResult = await executeSwap(quote, intent.user_address);
+    // Step 5: Execute the swap with user signature
+    const swapResult = await executeSwap(
+      quote,
+      intent.user_address,
+      intent.user_signature!
+    );
 
     if (swapResult.success) {
-      // Step 5: Update execution record with success
+      // Step 6: Update execution record with success
       await supabase
         .from("investment_executions")
         .update({
@@ -98,7 +217,7 @@ export async function executeInvestment(
         })
         .eq("id", execution.id);
 
-      // Step 6: Record resolver data for transparency
+      // Step 7: Record resolver data for transparency
       await supabase.from("resolver_data").insert({
         resolver_address: quote.resolver || "unknown",
         execution_id: execution.id,
@@ -114,7 +233,7 @@ export async function executeInvestment(
         feePaid: quote.fee,
       };
     } else {
-      // Step 7: Update execution record with failure
+      // Step 8: Update execution record with failure
       await supabase
         .from("investment_executions")
         .update({
@@ -148,22 +267,30 @@ export async function executeInvestment(
 
 async function executeSwap(
   quote: any,
-  userAddress: string
+  userAddress: string,
+  userSignature: string
 ): Promise<{
   success: boolean;
   transactionHash?: string;
   executionTime?: number;
   error?: string;
 }> {
-  // This is a placeholder for the actual swap execution
-  // In a real implementation, this would:
-  // 1. Call the resolver's execute function
-  // 2. Wait for transaction confirmation
-  // 3. Return the transaction hash and execution time
-
   const startTime = Date.now();
 
   try {
+    // In a real implementation, this would:
+    // 1. Use the user's signature to authorize the transaction
+    // 2. Call the resolver's execute function with proper permissions
+    // 3. Wait for transaction confirmation
+    // 4. Return the transaction hash and execution time
+
+    console.log(
+      `Executing swap for user ${userAddress} with signature: ${userSignature.substring(
+        0,
+        10
+      )}...`
+    );
+
     // Simulate swap execution with a delay
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
@@ -220,3 +347,6 @@ export async function getExecutionStats() {
     successRate: total > 0 ? (successful / total) * 100 : 0,
   };
 }
+
+// Export the message creation function for use in the UI
+export { createExecutionMessage };
