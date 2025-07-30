@@ -4,6 +4,7 @@ export const SUPPORTED_CHAINS = [
   { id: 1, name: "Ethereum", symbol: "ETH" },
   { id: 137, name: "Polygon", symbol: "MATIC" },
   { id: 56, name: "BNB Smart Chain", symbol: "BSC" },
+  { id: 8453, name: "Base", symbol: "ETH" },
 ];
 
 export const TOKENS: TokenInfo[] = [
@@ -124,6 +125,43 @@ export const TOKENS: TokenInfo[] = [
     logoURI:
       "https://assets.coingecko.com/coins/images/12632/thumb/IMG_0440.PNG",
   },
+
+  // Base tokens
+  {
+    address: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+    symbol: "USDC",
+    name: "USD Coin",
+    decimals: 6,
+    chainId: 8453,
+    logoURI:
+      "https://assets.coingecko.com/coins/images/6319/thumb/USD_Coin_icon.png",
+  },
+  {
+    address: "0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb",
+    symbol: "DAI",
+    name: "Dai Stablecoin",
+    decimals: 18,
+    chainId: 8453,
+    logoURI:
+      "https://assets.coingecko.com/coins/images/9956/thumb/4943.png",
+  },
+  {
+    address: "0x4200000000000000000000000000000000000006",
+    symbol: "WETH",
+    name: "Wrapped Ether",
+    decimals: 18,
+    chainId: 8453,
+    logoURI: "https://assets.coingecko.com/coins/images/2518/thumb/weth.png",
+  },
+  {
+    address: "0x2Ae3F1Ec7F1F5012CFEab0185bfc7aa3cf0DEc22",
+    symbol: "cbETH",
+    name: "Coinbase Wrapped Staked ETH",
+    decimals: 18,
+    chainId: 8453,
+    logoURI:
+      "https://assets.coingecko.com/coins/images/27045/thumb/cbeth.png",
+  }
 ];
 
 export const getTokensByChain = (chainId: number): TokenInfo[] => {

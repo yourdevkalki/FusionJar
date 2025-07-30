@@ -10,6 +10,9 @@ CREATE TABLE IF NOT EXISTS investment_intents (
   frequency TEXT NOT NULL CHECK (frequency IN ('daily', 'weekly')),
   fee_tolerance DECIMAL(5,2) NOT NULL,
   status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'paused', 'cancelled')),
+  user_signature TEXT, -- User's signature authorizing execution
+  signature_timestamp TIMESTAMP WITH TIME ZONE, -- When the signature was created
+  signature_expiry TIMESTAMP WITH TIME ZONE, -- When the signature expires
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

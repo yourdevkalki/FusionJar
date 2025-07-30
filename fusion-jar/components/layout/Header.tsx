@@ -53,6 +53,12 @@ export function Header() {
             >
               Scheduler
             </Link>
+            <Link
+              href="/gasless-swap"
+              className="text-gray-700 hover:text-gray-900"
+            >
+              Gasless Swap
+            </Link>
           </nav>
           <SimpleConnectButton />
         </div>
