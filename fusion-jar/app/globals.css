@@ -1,26 +1,75 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0d0b17;
+  --foreground: #ffffff;
+  --gray-500: #8a8a94;
+  --purple-light: #a78bfa;
+  --purple: #8b5cf6;
+  --purple-dark: #6366f1;
+  --yellow: #facc15;
+  --green: #16c784;
+  --red: #ef4444;
+  --orange: #f97316;
+  --primary-500: #5a2fcf;
+  --primary-600: #4e29b4;
+  --primary-700: #42239a;
+  --secondary-400: #a499c2;
+  --secondary-500: #2f2843;
+  --secondary-600: #171320;
+  --white: #ffffff;
+  --primary: #7f5af0;
+  --success: #2cb67d;
+  --warning: #ffd466;
+  --surface: #16161a;
+  --text-primary: #fffffe;
+  --text-secondary: #94a1b2;
+  --stroke: #2e2e2e;
+
+  /* Invest page specific variables */
+  --on-surface: #a294c7;
+  --on-surface-strong: #fffffe;
+  --border-color: #2e2546;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-gray-500: var(--gray-500);
+  --color-purple-light: var(--purple-light);
+  --color-purple: var(--purple);
+  --color-purple-dark: var(--purple-dark);
+  --color-yellow: var(--yellow);
+  --color-green: var(--green);
+  --color-red: var(--red);
+  --color-orange: var(--orange);
+  --font-sans: "Inter", system-ui, sans-serif;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+}
+
+/* Invest page specific styles */
+.btn-primary {
+  @apply bg-[var(--primary)] text-white font-bold py-3 px-6 rounded-full transition-transform duration-300 ease-in-out hover:scale-105;
+}
+
+.input-base {
+  @apply w-full bg-[var(--surface)] border border-[var(--border-color)] rounded-2xl h-14 px-4 text-[var(--on-surface-strong)] placeholder:text-[var(--on-surface)] focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent transition-shadow;
+}
+
+.select-base {
+  @apply appearance-none bg-no-repeat bg-right pr-10;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23a294c7' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+}
+
+.tab-active {
+  @apply text-[var(--primary)] border-[var(--primary)];
+}
+
+.tab-inactive {
+  @apply text-[var(--on-surface)] border-transparent hover:text-white hover:border-gray-300;
 }

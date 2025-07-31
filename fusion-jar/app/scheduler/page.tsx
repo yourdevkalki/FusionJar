@@ -84,42 +84,42 @@ export default function SchedulerPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">
+        <h1 className="text-3xl font-bold text-white">
           Investment Scheduler
         </h1>
-        <p className="text-gray-600 mt-2">
+        <p className="text-gray-500 mt-2">
           Monitor and control automated investment executions
         </p>
       </div>
 
       {/* Status Overview */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-background p-6 rounded-lg shadow">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">
+              <p className="text-sm font-medium text-gray-500">
                 Scheduler Status
               </p>
               <div className="flex items-center mt-2">
                 <div
                   className={`w-3 h-3 rounded-full mr-2 ${
-                    status?.isRunning ? "bg-green-500" : "bg-red-500"
+                    status?.isRunning ? "bg-green0" : "bg-red0"
                   }`}
                 ></div>
-                <p className="text-lg font-semibold text-gray-900">
+                <p className="text-lg font-semibold text-white">
                   {status?.isRunning ? "Running" : "Stopped"}
                 </p>
               </div>
             </div>
-            <Activity className="w-8 h-8 text-blue-500" />
+            <Activity className="w-8 h-8 text-purple" />
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-background p-6 rounded-lg shadow">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Last Updated</p>
-              <p className="text-lg font-semibold text-gray-900">
+              <p className="text-sm font-medium text-gray-500">Last Updated</p>
+              <p className="text-lg font-semibold text-white">
                 {status?.timestamp
                   ? new Date(status.timestamp).toLocaleString()
                   : "N/A"}
@@ -129,13 +129,13 @@ export default function SchedulerPage() {
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-background p-6 rounded-lg shadow">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">
+              <p className="text-sm font-medium text-gray-500">
                 Next Execution
               </p>
-              <p className="text-lg font-semibold text-gray-900">
+              <p className="text-lg font-semibold text-white">
                 {status?.isRunning ? "9:00 AM UTC" : "Scheduler Stopped"}
               </p>
             </div>
@@ -147,10 +147,10 @@ export default function SchedulerPage() {
       {/* Control Panel */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Scheduler Controls */}
-        <div className="bg-white rounded-lg shadow">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-              <Settings className="w-5 h-5 mr-2 text-blue-500" />
+        <div className="bg-background rounded-lg shadow">
+          <div className="px-6 py-4 border-b border-gray-500">
+            <h3 className="text-lg font-semibold text-white flex items-center">
+              <Settings className="w-5 h-5 mr-2 text-purple" />
               Scheduler Controls
             </h3>
           </div>
@@ -168,7 +168,7 @@ export default function SchedulerPage() {
                 <button
                   onClick={() => executeAction("stop")}
                   disabled={actionLoading || !status?.isRunning}
-                  className="flex-1 flex items-center justify-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 flex items-center justify-center px-4 py-2 bg-red text-white rounded-lg hover:bg-red disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Pause className="w-4 h-4 mr-2" />
                   Stop Scheduler
@@ -176,14 +176,14 @@ export default function SchedulerPage() {
               </div>
 
               <div className="border-t pt-4">
-                <h4 className="text-sm font-medium text-gray-900 mb-3">
+                <h4 className="text-sm font-medium text-white mb-3">
                   Manual Triggers
                 </h4>
                 <div className="grid grid-cols-2 gap-3">
                   <button
                     onClick={() => executeAction("trigger", "daily")}
                     disabled={actionLoading}
-                    className="flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                    className="flex items-center justify-center px-4 py-2 bg-purple text-white rounded-lg hover:bg-purple-dark disabled:opacity-50"
                   >
                     <Zap className="w-4 h-4 mr-2" />
                     Trigger Daily
@@ -202,7 +202,7 @@ export default function SchedulerPage() {
               <button
                 onClick={fetchStatus}
                 disabled={actionLoading}
-                className="w-full flex items-center justify-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50"
+                className="w-full flex items-center justify-center px-4 py-2 bg-gray-500 text-gray-500 rounded-lg hover:bg-gray-5000 disabled:opacity-50"
               >
                 <RefreshCw className="w-4 h-4 mr-2" />
                 Refresh Status
@@ -212,36 +212,36 @@ export default function SchedulerPage() {
         </div>
 
         {/* Schedule Information */}
-        <div className="bg-white rounded-lg shadow">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+        <div className="bg-background rounded-lg shadow">
+          <div className="px-6 py-4 border-b border-gray-500">
+            <h3 className="text-lg font-semibold text-white flex items-center">
               <Calendar className="w-5 h-5 mr-2 text-green-500" />
               Schedule Information
             </h3>
           </div>
           <div className="p-6">
             <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
+              <div className="flex items-center justify-between p-4 bg-purple rounded-lg">
                 <div>
-                  <p className="text-sm font-medium text-gray-900">
+                  <p className="text-sm font-medium text-white">
                     Daily Investments
                   </p>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-gray-500">
                     Executes at 9:00 AM UTC
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-medium text-blue-600">Active</p>
+                  <p className="text-sm font-medium text-purple">Active</p>
                   <p className="text-xs text-gray-500">Cron: 0 9 * * *</p>
                 </div>
               </div>
 
               <div className="flex items-center justify-between p-4 bg-purple-50 rounded-lg">
                 <div>
-                  <p className="text-sm font-medium text-gray-900">
+                  <p className="text-sm font-medium text-white">
                     Weekly Investments
                   </p>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-gray-500">
                     Executes Monday 9:00 AM UTC
                   </p>
                 </div>
@@ -251,15 +251,15 @@ export default function SchedulerPage() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg">
+              <div className="flex items-center justify-between p-4 bg-green rounded-lg">
                 <div>
-                  <p className="text-sm font-medium text-gray-900">
+                  <p className="text-sm font-medium text-white">
                     Health Check
                   </p>
-                  <p className="text-sm text-gray-600">Every hour</p>
+                  <p className="text-sm text-gray-500">Every hour</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-medium text-green-600">Active</p>
+                  <p className="text-sm font-medium text-green">Active</p>
                   <p className="text-xs text-gray-500">Cron: 0 * * * *</p>
                 </div>
               </div>
@@ -269,9 +269,9 @@ export default function SchedulerPage() {
       </div>
 
       {/* Execution Rules */}
-      <div className="mt-8 bg-white rounded-lg shadow">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+      <div className="mt-8 bg-background rounded-lg shadow">
+        <div className="px-6 py-4 border-b border-gray-500">
+          <h3 className="text-lg font-semibold text-white flex items-center">
             <CheckCircle className="w-5 h-5 mr-2 text-green-500" />
             Execution Rules & Safety
           </h3>
@@ -279,10 +279,10 @@ export default function SchedulerPage() {
         <div className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <h4 className="text-sm font-medium text-gray-900 mb-3">
+              <h4 className="text-sm font-medium text-white mb-3">
                 Execution Criteria
               </h4>
-              <ul className="space-y-2 text-sm text-gray-600">
+              <ul className="space-y-2 text-sm text-gray-500">
                 <li className="flex items-start">
                   <CheckCircle className="w-4 h-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
                   Only processes active investment intents
@@ -302,24 +302,24 @@ export default function SchedulerPage() {
               </ul>
             </div>
             <div>
-              <h4 className="text-sm font-medium text-gray-900 mb-3">
+              <h4 className="text-sm font-medium text-white mb-3">
                 Safety Measures
               </h4>
-              <ul className="space-y-2 text-sm text-gray-600">
+              <ul className="space-y-2 text-sm text-gray-500">
                 <li className="flex items-start">
-                  <AlertCircle className="w-4 h-4 text-yellow-500 mr-2 mt-0.5 flex-shrink-0" />
+                  <AlertCircle className="w-4 h-4 text-yellow mr-2 mt-0.5 flex-shrink-0" />
                   Maximum 20 hours between daily executions
                 </li>
                 <li className="flex items-start">
-                  <AlertCircle className="w-4 h-4 text-yellow-500 mr-2 mt-0.5 flex-shrink-0" />
+                  <AlertCircle className="w-4 h-4 text-yellow mr-2 mt-0.5 flex-shrink-0" />
                   Maximum 6 days between weekly executions
                 </li>
                 <li className="flex items-start">
-                  <AlertCircle className="w-4 h-4 text-yellow-500 mr-2 mt-0.5 flex-shrink-0" />
+                  <AlertCircle className="w-4 h-4 text-yellow mr-2 mt-0.5 flex-shrink-0" />
                   Automatic failure handling and retry logic
                 </li>
                 <li className="flex items-start">
-                  <AlertCircle className="w-4 h-4 text-yellow-500 mr-2 mt-0.5 flex-shrink-0" />
+                  <AlertCircle className="w-4 h-4 text-yellow mr-2 mt-0.5 flex-shrink-0" />
                   Comprehensive logging for audit trails
                 </li>
               </ul>
@@ -329,10 +329,10 @@ export default function SchedulerPage() {
       </div>
 
       {/* Recent Activity */}
-      <div className="mt-8 bg-white rounded-lg shadow">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-            <Activity className="w-5 h-5 mr-2 text-blue-500" />
+      <div className="mt-8 bg-background rounded-lg shadow">
+        <div className="px-6 py-4 border-b border-gray-500">
+          <h3 className="text-lg font-semibold text-white flex items-center">
+            <Activity className="w-5 h-5 mr-2 text-purple" />
             Recent Scheduler Activity
           </h3>
         </div>

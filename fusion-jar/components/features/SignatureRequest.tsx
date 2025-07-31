@@ -72,50 +72,50 @@ export default function SignatureRequest({
   expiryDate.setHours(expiryDate.getHours() + 24);
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-6 max-w-md mx-auto">
+    <div className="bg-background rounded-lg shadow-lg p-6 max-w-md mx-auto">
       <div className="text-center mb-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+        <h3 className="text-lg font-semibold text-white mb-2">
           Authorize Investment Execution
         </h3>
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-gray-500">
           Sign this message to authorize FusionJar to execute your scheduled
           investment
         </p>
       </div>
 
-      <div className="bg-gray-50 rounded-lg p-4 mb-6">
-        <h4 className="font-medium text-gray-900 mb-3">Investment Details:</h4>
+      <div className="bg-background rounded-lg p-4 mb-6">
+        <h4 className="font-medium text-white mb-3">Investment Details:</h4>
         <div className="space-y-2 text-sm">
           <div className="flex justify-between">
-            <span className="text-gray-600">Amount:</span>
+            <span className="text-gray-500">Amount:</span>
             <span className="font-medium">${intent.amount_usd}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-600">From:</span>
+            <span className="text-gray-500">From:</span>
             <span className="font-medium">
               {intent.source_token} (Chain {intent.source_chain})
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-600">To:</span>
+            <span className="text-gray-500">To:</span>
             <span className="font-medium">
               {intent.target_token} (Chain {intent.target_chain})
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-600">Fee Tolerance:</span>
+            <span className="text-gray-500">Fee Tolerance:</span>
             <span className="font-medium">{intent.fee_tolerance}%</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-600">Signature Expires:</span>
+            <span className="text-gray-500">Signature Expires:</span>
             <span className="font-medium">{expiryDate.toLocaleString()}</span>
           </div>
         </div>
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
-          <p className="text-red-800 text-sm">{error}</p>
+        <div className="bg-red border border-red rounded-lg p-3 mb-4">
+          <p className="text-red text-sm">{error}</p>
         </div>
       )}
 
@@ -123,14 +123,14 @@ export default function SignatureRequest({
         <button
           onClick={handleSignMessage}
           disabled={isPending || !address}
-          className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+          className="flex-1 bg-purple text-white px-4 py-2 rounded-lg hover:bg-purple-dark disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
         >
           {isPending ? "Signing..." : "Sign & Authorize"}
         </button>
         <button
           onClick={onCancel}
           disabled={isPending}
-          className="flex-1 bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 disabled:bg-gray-100 disabled:cursor-not-allowed transition-colors"
+          className="flex-1 bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 disabled:bg-gray-500 disabled:cursor-not-allowed transition-colors"
         >
           Cancel
         </button>

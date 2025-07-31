@@ -420,7 +420,7 @@ export default function GaslessSwap() {
 
   if (!isClient) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="animate-pulse">
           <div className="h-8 bg-gray-200 rounded w-64 mb-4"></div>
           <div className="h-4 bg-gray-200 rounded w-48"></div>
@@ -431,12 +431,12 @@ export default function GaslessSwap() {
 
   if (!isConnected) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+          <h2 className="text-2xl font-bold text-white mb-4">
             Connect Wallet to Use 1inch Swap
           </h2>
-          <p className="text-gray-600">
+          <p className="text-gray-500">
             Please connect your wallet to start swapping tokens with 1inch.
           </p>
         </div>
@@ -447,13 +447,13 @@ export default function GaslessSwap() {
   const baseTokens = TOKENS.filter((token) => token.chainId === 8453);
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
-      <div className="max-w-md mx-auto bg-white rounded-lg shadow-lg p-6">
+    <div className="min-h-screen bg-background py-12">
+      <div className="max-w-md mx-auto bg-background rounded-lg shadow-lg p-6">
         <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          <h2 className="text-2xl font-bold text-white mb-2">
             1inch Swap on Base
           </h2>
-          <p className="text-gray-600">
+          <p className="text-gray-500">
             {swapOrder?.isFusion
               ? "Experience gasless Fusion+ swaps with MEV protection"
               : "Fast and efficient token swaps using 1inch"}
@@ -463,14 +463,14 @@ export default function GaslessSwap() {
         <div className="space-y-4">
           {/* Source Token Selection */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-500 mb-2">
               From Token
             </label>
             <select
               value={selectedSrcToken}
               onChange={(e) => setSelectedSrcToken(e.target.value)}
               disabled={swapStatus !== "idle"}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
+              className="w-full p-3 border border-gray-500 rounded-lg focus:ring-2 focus:ring-purple focus:border-transparent disabled:bg-gray-500"
             >
               {baseTokens.map((token) => (
                 <option key={token.address} value={token.address}>
@@ -482,14 +482,14 @@ export default function GaslessSwap() {
 
           {/* Destination Token Selection */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-500 mb-2">
               To Token
             </label>
             <select
               value={selectedDstToken}
               onChange={(e) => setSelectedDstToken(e.target.value)}
               disabled={swapStatus !== "idle"}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
+              className="w-full p-3 border border-gray-500 rounded-lg focus:ring-2 focus:ring-purple focus:border-transparent disabled:bg-gray-500"
             >
               {baseTokens.map((token) => (
                 <option key={token.address} value={token.address}>
@@ -501,7 +501,7 @@ export default function GaslessSwap() {
 
           {/* Amount Input */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-500 mb-2">
               Amount
             </label>
             <input
@@ -510,7 +510,7 @@ export default function GaslessSwap() {
               onChange={(e) => setAmount(e.target.value)}
               placeholder="Enter amount"
               disabled={swapStatus !== "idle"}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
+              className="w-full p-3 border border-gray-500 rounded-lg focus:ring-2 focus:ring-purple focus:border-transparent disabled:bg-gray-500"
             />
           </div>
 
@@ -519,12 +519,12 @@ export default function GaslessSwap() {
             <div
               className={`text-sm font-medium ${
                 swapStatus === "success"
-                  ? "text-green-600"
+                  ? "text-green"
                   : swapStatus === "error"
                   ? "text-red-600"
                   : swapStatus !== "idle"
-                  ? "text-blue-600"
-                  : "text-gray-600"
+                  ? "text-purple"
+                  : "text-gray-500"
               }`}
             >
               {getStatusText()}
@@ -536,7 +536,7 @@ export default function GaslessSwap() {
           {swapOrder && (
             <div
               className={`text-center p-3 rounded-lg ${
-                swapOrder.isFusion ? "bg-purple-50" : "bg-blue-50"
+                swapOrder.isFusion ? "bg-purple-50" : "bg-purple"
               }`}
             >
               <div
@@ -550,7 +550,7 @@ export default function GaslessSwap() {
               </div>
               <div
                 className={`text-xs ${
-                  swapOrder.isFusion ? "text-purple-600" : "text-blue-600"
+                  swapOrder.isFusion ? "text-purple-600" : "text-purple"
                 }`}
               >
                 {swapOrder.isFusion
@@ -572,7 +572,7 @@ export default function GaslessSwap() {
                     className={`w-3 h-3 rounded-full ${
                       orderStatus.phase === "announcement"
                         ? "bg-purple-500 animate-pulse"
-                        : "bg-green-500"
+                        : "bg-green0"
                     }`}
                   ></div>
                   <span className="text-sm text-purple-800">
@@ -585,7 +585,7 @@ export default function GaslessSwap() {
                       orderStatus.phase === "deposit"
                         ? "bg-purple-500 animate-pulse"
                         : orderStatus.phase === "withdrawal"
-                        ? "bg-green-500"
+                        ? "bg-green0"
                         : "bg-gray-300"
                     }`}
                   ></div>
@@ -599,7 +599,7 @@ export default function GaslessSwap() {
                       orderStatus.phase === "withdrawal"
                         ? "bg-purple-500 animate-pulse"
                         : orderStatus.status === "Filled"
-                        ? "bg-green-500"
+                        ? "bg-green0"
                         : "bg-gray-300"
                     }`}
                   ></div>
@@ -616,9 +616,9 @@ export default function GaslessSwap() {
 
           {/* Quote Preview */}
           {quote && (
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h3 className="font-medium text-gray-900 mb-2">Quote Preview</h3>
-              <div className="text-sm text-gray-600 space-y-1">
+            <div className="bg-background p-4 rounded-lg">
+              <h3 className="font-medium text-white mb-2">Quote Preview</h3>
+              <div className="text-sm text-gray-500 space-y-1">
                 <div>
                   You will receive:{" "}
                   {parseFloat(quote.dstAmount) / Math.pow(10, 18)} WETH
@@ -626,7 +626,7 @@ export default function GaslessSwap() {
                 {quote.estimatedGas && (
                   <div>Estimated gas: {quote.estimatedGas}</div>
                 )}
-                <div className="text-green-600 font-medium">
+                <div className="text-green font-medium">
                   ✅ Best rates via 1inch aggregation
                 </div>
               </div>
@@ -638,7 +638,7 @@ export default function GaslessSwap() {
             <button
               onClick={getQuote}
               disabled={swapStatus !== "idle" || !amount}
-              className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+              className="w-full bg-purple text-white py-3 px-4 rounded-lg hover:bg-purple-dark disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
             >
               Get 1inch Quote
             </button>

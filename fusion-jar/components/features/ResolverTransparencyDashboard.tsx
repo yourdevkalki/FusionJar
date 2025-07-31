@@ -78,7 +78,7 @@ export default function ResolverTransparencyDashboard() {
       case "failed":
         return <XCircle className="w-4 h-4 text-red-500" />;
       case "pending":
-        return <Clock className="w-4 h-4 text-yellow-500" />;
+        return <Clock className="w-4 h-4 text-yellow" />;
       default:
         return <Clock className="w-4 h-4 text-gray-500" />;
     }
@@ -87,18 +87,18 @@ export default function ResolverTransparencyDashboard() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "fulfilled":
-        return "text-green-600 bg-green-100";
+        return "text-green bg-green-100";
       case "failed":
         return "text-red-600 bg-red-100";
       case "pending":
         return "text-yellow-600 bg-yellow-100";
       default:
-        return "text-gray-600 bg-gray-100";
+        return "text-gray-500 bg-gray-500";
     }
   };
 
   const getPerformanceColor = (score: number) => {
-    if (score >= 80) return "text-green-600";
+    if (score >= 80) return "text-green";
     if (score >= 60) return "text-yellow-600";
     return "text-red-600";
   };
@@ -131,8 +131,8 @@ export default function ResolverTransparencyDashboard() {
   if (!analytics) {
     return (
       <div className="text-center py-12">
-        <Activity className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">
+        <Activity className="mx-auto h-12 w-12 text-gray-500 mb-4" />
+        <h3 className="text-lg font-medium text-white mb-2">
           No Analytics Available
         </h3>
         <p className="text-gray-500">
@@ -146,7 +146,7 @@ export default function ResolverTransparencyDashboard() {
     <div className="space-y-8">
       {/* Timeframe Selector */}
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-900">
+        <h2 className="text-2xl font-bold text-white">
           Resolver Transparency
         </h2>
         <div className="flex space-x-2">
@@ -156,8 +156,8 @@ export default function ResolverTransparencyDashboard() {
               onClick={() => setSelectedTimeframe(timeframe)}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 selectedTimeframe === timeframe
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  ? "bg-purple text-white"
+                  : "bg-gray-500 text-gray-500 hover:bg-gray-5000"
               }`}
             >
               {timeframe}
@@ -168,25 +168,25 @@ export default function ResolverTransparencyDashboard() {
 
       {/* System Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-background p-6 rounded-lg shadow">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">
+              <p className="text-sm font-medium text-gray-500">
                 Total Executions
               </p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-2xl font-bold text-white">
                 {analytics.total_executions}
               </p>
             </div>
-            <Activity className="w-8 h-8 text-blue-500" />
+            <Activity className="w-8 h-8 text-purple" />
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-background p-6 rounded-lg shadow">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Success Rate</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-sm font-medium text-gray-500">Success Rate</p>
+              <p className="text-2xl font-bold text-white">
                 {analytics.success_rate.toFixed(1)}%
               </p>
             </div>
@@ -194,13 +194,13 @@ export default function ResolverTransparencyDashboard() {
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-background p-6 rounded-lg shadow">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">
+              <p className="text-sm font-medium text-gray-500">
                 Avg Execution Time
               </p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-2xl font-bold text-white">
                 {formatTime(analytics.average_execution_time)}
               </p>
             </div>
@@ -208,11 +208,11 @@ export default function ResolverTransparencyDashboard() {
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-background p-6 rounded-lg shadow">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Total Volume</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-sm font-medium text-gray-500">Total Volume</p>
+              <p className="text-2xl font-bold text-white">
                 ${analytics.total_volume.toFixed(0)}
               </p>
             </div>
@@ -224,10 +224,10 @@ export default function ResolverTransparencyDashboard() {
       {/* Top Resolvers and Recent Executions */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Top Resolvers */}
-        <div className="bg-white rounded-lg shadow">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-              <Shield className="w-5 h-5 mr-2 text-blue-500" />
+        <div className="bg-background rounded-lg shadow">
+          <div className="px-6 py-4 border-b border-gray-500">
+            <h3 className="text-lg font-semibold text-white flex items-center">
+              <Shield className="w-5 h-5 mr-2 text-purple" />
               Top Performing Resolvers
             </h3>
           </div>
@@ -236,16 +236,16 @@ export default function ResolverTransparencyDashboard() {
               {analytics.top_resolvers.map((resolver, index) => (
                 <div
                   key={resolver.resolver_address}
-                  className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
+                  className="flex items-center justify-between p-4 bg-background rounded-lg"
                 >
                   <div className="flex items-center">
                     <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 mr-3">
-                      <span className="text-sm font-medium text-blue-600">
+                      <span className="text-sm font-medium text-purple">
                         {index + 1}
                       </span>
                     </div>
                     <div>
-                      <p className="font-medium text-gray-900">
+                      <p className="font-medium text-white">
                         {formatAddress(resolver.resolver_address)}
                       </p>
                       <p className="text-sm text-gray-500">
@@ -274,9 +274,9 @@ export default function ResolverTransparencyDashboard() {
         </div>
 
         {/* Recent Executions */}
-        <div className="bg-white rounded-lg shadow">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+        <div className="bg-background rounded-lg shadow">
+          <div className="px-6 py-4 border-b border-gray-500">
+            <h3 className="text-lg font-semibold text-white flex items-center">
               <Eye className="w-5 h-5 mr-2 text-green-500" />
               Recent Executions
             </h3>
@@ -286,12 +286,12 @@ export default function ResolverTransparencyDashboard() {
               {analytics.recent_executions.slice(0, 8).map((execution) => (
                 <div
                   key={execution.id}
-                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                  className="flex items-center justify-between p-3 bg-background rounded-lg"
                 >
                   <div className="flex items-center">
                     {getStatusIcon(execution.status)}
                     <div className="ml-3">
-                      <p className="text-sm font-medium text-gray-900">
+                      <p className="text-sm font-medium text-white">
                         ${parseFloat(execution.amount_usd).toFixed(2)}
                       </p>
                       <p className="text-xs text-gray-500">
@@ -319,16 +319,16 @@ export default function ResolverTransparencyDashboard() {
       </div>
 
       {/* Detailed Resolver Performance */}
-      <div className="bg-white rounded-lg shadow">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+      <div className="bg-background rounded-lg shadow">
+        <div className="px-6 py-4 border-b border-gray-500">
+          <h3 className="text-lg font-semibold text-white flex items-center">
             <BarChart3 className="w-5 h-5 mr-2 text-purple-500" />
             Resolver Performance Details
           </h3>
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+            <thead className="bg-background">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Resolver
@@ -353,40 +353,40 @@ export default function ResolverTransparencyDashboard() {
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-background divide-y divide-gray-200">
               {analytics.top_resolvers.map((resolver) => (
                 <tr
                   key={resolver.resolver_address}
-                  className="hover:bg-gray-50"
+                  className="hover:bg-background"
                 >
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">
+                    <div className="text-sm font-medium text-white">
                       {formatAddress(resolver.resolver_address)}
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
                     {resolver.total_executions}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div className="w-16 bg-gray-200 rounded-full h-2 mr-2">
                         <div
-                          className="bg-green-500 h-2 rounded-full"
+                          className="bg-green0 h-2 rounded-full"
                           style={{ width: `${resolver.success_rate}%` }}
                         ></div>
                       </div>
-                      <span className="text-sm text-gray-900">
+                      <span className="text-sm text-white">
                         {resolver.success_rate.toFixed(1)}%
                       </span>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
                     {formatTime(resolver.average_execution_time)}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
                     ${parseFloat(resolver.total_volume_processed).toFixed(2)}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
                     ${parseFloat(resolver.total_fees_earned).toFixed(4)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -407,52 +407,52 @@ export default function ResolverTransparencyDashboard() {
 
       {/* System Health Indicators */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-background p-6 rounded-lg shadow">
           <div className="flex items-center justify-between mb-4">
-            <h4 className="text-lg font-medium text-gray-900">System Health</h4>
-            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+            <h4 className="text-lg font-medium text-white">System Health</h4>
+            <div className="w-3 h-3 bg-green0 rounded-full"></div>
           </div>
           <div className="space-y-3">
             <div className="flex justify-between">
-              <span className="text-sm text-gray-600">Active Resolvers</span>
-              <span className="text-sm font-medium text-gray-900">
+              <span className="text-sm text-gray-500">Active Resolvers</span>
+              <span className="text-sm font-medium text-white">
                 {analytics.top_resolvers.length}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-gray-600">Avg Fee</span>
-              <span className="text-sm font-medium text-gray-900">
+              <span className="text-sm text-gray-500">Avg Fee</span>
+              <span className="text-sm font-medium text-white">
                 ${analytics.average_fee.toFixed(4)}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-gray-600">Success Rate</span>
-              <span className="text-sm font-medium text-gray-900">
+              <span className="text-sm text-gray-500">Success Rate</span>
+              <span className="text-sm font-medium text-white">
                 {analytics.success_rate.toFixed(1)}%
               </span>
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-background p-6 rounded-lg shadow">
           <div className="flex items-center justify-between mb-4">
-            <h4 className="text-lg font-medium text-gray-900">
+            <h4 className="text-lg font-medium text-white">
               Performance Metrics
             </h4>
-            <Zap className="w-5 h-5 text-yellow-500" />
+            <Zap className="w-5 h-5 text-yellow" />
           </div>
           <div className="space-y-3">
             <div className="flex justify-between">
-              <span className="text-sm text-gray-600">Best Resolver</span>
-              <span className="text-sm font-medium text-gray-900">
+              <span className="text-sm text-gray-500">Best Resolver</span>
+              <span className="text-sm font-medium text-white">
                 {analytics.top_resolvers[0]
                   ? formatAddress(analytics.top_resolvers[0].resolver_address)
                   : "N/A"}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-gray-600">Top Score</span>
-              <span className="text-sm font-medium text-gray-900">
+              <span className="text-sm text-gray-500">Top Score</span>
+              <span className="text-sm font-medium text-white">
                 {analytics.top_resolvers[0]
                   ? analytics.top_resolvers[0].performance_score
                   : 0}
@@ -460,8 +460,8 @@ export default function ResolverTransparencyDashboard() {
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-gray-600">Fastest Time</span>
-              <span className="text-sm font-medium text-gray-900">
+              <span className="text-sm text-gray-500">Fastest Time</span>
+              <span className="text-sm font-medium text-white">
                 {analytics.top_resolvers.length > 0
                   ? formatTime(
                       Math.min(
@@ -476,23 +476,23 @@ export default function ResolverTransparencyDashboard() {
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-background p-6 rounded-lg shadow">
           <div className="flex items-center justify-between mb-4">
-            <h4 className="text-lg font-medium text-gray-900">
+            <h4 className="text-lg font-medium text-white">
               Volume Analysis
             </h4>
-            <Target className="w-5 h-5 text-blue-500" />
+            <Target className="w-5 h-5 text-purple" />
           </div>
           <div className="space-y-3">
             <div className="flex justify-between">
-              <span className="text-sm text-gray-600">Total Volume</span>
-              <span className="text-sm font-medium text-gray-900">
+              <span className="text-sm text-gray-500">Total Volume</span>
+              <span className="text-sm font-medium text-white">
                 ${analytics.total_volume.toFixed(0)}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-gray-600">Avg per Execution</span>
-              <span className="text-sm font-medium text-gray-900">
+              <span className="text-sm text-gray-500">Avg per Execution</span>
+              <span className="text-sm font-medium text-white">
                 $
                 {analytics.total_executions > 0
                   ? (
@@ -502,8 +502,8 @@ export default function ResolverTransparencyDashboard() {
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-gray-600">Total Fees</span>
-              <span className="text-sm font-medium text-gray-900">
+              <span className="text-sm text-gray-500">Total Fees</span>
+              <span className="text-sm font-medium text-white">
                 $
                 {analytics.top_resolvers
                   .reduce((sum, r) => sum + parseFloat(r.total_fees_earned), 0)

@@ -142,11 +142,11 @@ export default function InvestmentForm({ onSuccess }: InvestmentFormProps) {
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Source Chain & Token */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-900">Source</h3>
+          <h3 className="text-lg font-semibold text-white">Source</h3>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-500 mb-2">
                 Chain
               </label>
               <select
@@ -154,7 +154,7 @@ export default function InvestmentForm({ onSuccess }: InvestmentFormProps) {
                 onChange={(e) =>
                   handleChainChange("sourceChain", Number(e.target.value))
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-purple"
               >
                 {SUPPORTED_CHAINS.map((chain) => (
                   <option key={chain.id} value={chain.id}>
@@ -165,7 +165,7 @@ export default function InvestmentForm({ onSuccess }: InvestmentFormProps) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-500 mb-2">
                 Token
               </label>
               <select
@@ -173,7 +173,7 @@ export default function InvestmentForm({ onSuccess }: InvestmentFormProps) {
                 onChange={(e) =>
                   handleTokenChange("sourceToken", e.target.value)
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-purple"
               >
                 <option value="">Select token</option>
                 {sourceTokens.map((token) => (
@@ -188,11 +188,11 @@ export default function InvestmentForm({ onSuccess }: InvestmentFormProps) {
 
         {/* Target Chain & Token */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-900">Target</h3>
+          <h3 className="text-lg font-semibold text-white">Target</h3>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-500 mb-2">
                 Chain
               </label>
               <select
@@ -200,7 +200,7 @@ export default function InvestmentForm({ onSuccess }: InvestmentFormProps) {
                 onChange={(e) =>
                   handleChainChange("targetChain", Number(e.target.value))
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-purple"
               >
                 {SUPPORTED_CHAINS.map((chain) => (
                   <option key={chain.id} value={chain.id}>
@@ -211,7 +211,7 @@ export default function InvestmentForm({ onSuccess }: InvestmentFormProps) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-500 mb-2">
                 Token
               </label>
               <select
@@ -219,7 +219,7 @@ export default function InvestmentForm({ onSuccess }: InvestmentFormProps) {
                 onChange={(e) =>
                   handleTokenChange("targetToken", e.target.value)
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-purple"
               >
                 <option value="">Select token</option>
                 {targetTokens.map((token) => (
@@ -234,13 +234,13 @@ export default function InvestmentForm({ onSuccess }: InvestmentFormProps) {
 
         {/* Investment Amount */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+          <h3 className="text-lg font-semibold text-white flex items-center gap-2">
             <DollarSign className="w-5 h-5" />
             Investment Amount
           </h3>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-500 mb-2">
               Amount (USD)
             </label>
             <div className="relative">
@@ -256,10 +256,10 @@ export default function InvestmentForm({ onSuccess }: InvestmentFormProps) {
                     amountUsd: Number(e.target.value),
                   }))
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-purple"
                 placeholder="Enter amount ($1-$10)"
               />
-              <div className="absolute right-3 top-2 text-gray-400">USD</div>
+              <div className="absolute right-3 top-2 text-gray-500">USD</div>
             </div>
             <p className="text-sm text-gray-500 mt-1">Range: $1 - $10</p>
           </div>
@@ -267,13 +267,13 @@ export default function InvestmentForm({ onSuccess }: InvestmentFormProps) {
 
         {/* Frequency */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+          <h3 className="text-lg font-semibold text-white flex items-center gap-2">
             <Calendar className="w-5 h-5" />
             Frequency
           </h3>
 
           <div className="grid grid-cols-2 gap-4">
-            <label className="flex items-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+            <label className="flex items-center p-4 border border-gray-500 rounded-lg cursor-pointer hover:bg-background">
               <input
                 type="radio"
                 name="frequency"
@@ -295,7 +295,7 @@ export default function InvestmentForm({ onSuccess }: InvestmentFormProps) {
               </div>
             </label>
 
-            <label className="flex items-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+            <label className="flex items-center p-4 border border-gray-500 rounded-lg cursor-pointer hover:bg-background">
               <input
                 type="radio"
                 name="frequency"
@@ -321,13 +321,13 @@ export default function InvestmentForm({ onSuccess }: InvestmentFormProps) {
 
         {/* Fee Tolerance */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+          <h3 className="text-lg font-semibold text-white flex items-center gap-2">
             <Settings className="w-5 h-5" />
             Fee Tolerance
           </h3>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-500 mb-2">
               Maximum fee: {formData.feeTolerance}%
             </label>
             <input
@@ -357,14 +357,14 @@ export default function InvestmentForm({ onSuccess }: InvestmentFormProps) {
             <button
               type="button"
               onClick={getQuote}
-              className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 bg-purple text-white rounded-md hover:bg-purple-dark focus:outline-none focus:ring-2 focus:ring-purple"
             >
               Get Quote Preview
             </button>
 
             {showQuote && quote && (
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <h4 className="font-medium text-gray-900 mb-2">
+              <div className="p-4 bg-background rounded-lg">
+                <h4 className="font-medium text-white mb-2">
                   Quote Preview
                 </h4>
                 <div className="space-y-2 text-sm">
