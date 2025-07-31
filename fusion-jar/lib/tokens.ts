@@ -142,8 +142,7 @@ export const TOKENS: TokenInfo[] = [
     name: "Dai Stablecoin",
     decimals: 18,
     chainId: 8453,
-    logoURI:
-      "https://assets.coingecko.com/coins/images/9956/thumb/4943.png",
+    logoURI: "https://assets.coingecko.com/coins/images/9956/thumb/4943.png",
   },
   {
     address: "0x4200000000000000000000000000000000000006",
@@ -159,9 +158,8 @@ export const TOKENS: TokenInfo[] = [
     name: "Coinbase Wrapped Staked ETH",
     decimals: 18,
     chainId: 8453,
-    logoURI:
-      "https://assets.coingecko.com/coins/images/27045/thumb/cbeth.png",
-  }
+    logoURI: "https://assets.coingecko.com/coins/images/27045/thumb/cbeth.png",
+  },
 ];
 
 export const getTokensByChain = (chainId: number): TokenInfo[] => {

@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@1inch/cross-chain-sdk": "^0.1.15",
     "@1inch/fusion-sdk": "^2.3.5",
     "@rainbow-me/rainbowkit": "^2.2.8",
     "@supabase/supabase-js": "^2.53.0",
@@ -25,7 +26,8 @@
     "react-hot-toast": "^2.5.2",
     "recharts": "^3.1.0",
     "viem": "^2.33.1",
-    "wagmi": "^2.16.0"
+    "wagmi": "^2.16.0",
+    "web3": "^4.16.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
