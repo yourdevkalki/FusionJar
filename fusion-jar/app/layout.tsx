@@ -4,6 +4,7 @@ import "./globals.css";
 import { PrivyProvider } from "@/components/providers/PrivyProvider";
 import { WalletProvider } from "@/components/providers/WalletProvider";
 import { Navbar } from "@/components/layout/Navbar";
+import { Toaster } from "react-hot-toast";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -24,6 +25,16 @@ export default function RootLayout({
           <WalletProvider>
             <Navbar />
             {children}
+            <Toaster 
+              position="top-right"
+              toastOptions={{
+                duration: 4000,
+                style: {
+                  background: '#363636',
+                  color: '#fff',
+                },
+              }}
+            />
           </WalletProvider>
         </PrivyProvider>
       </body>

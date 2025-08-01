@@ -1,40 +1,91 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { SUPPORTED_CHAINS } from "@/lib/tokens";
+
+interface PortfolioData {
+  totalValue: number;
+  totalValueUsd: number;
+  dayChange: number;
+  dayChangePercent: number;
+  tokens: Array<{
+    address: string;
+    symbol: string;
+    name: string;
+    balance: string;
+    balanceUsd: number;
+    price: number;
+    chainId: number;
+  }>;
+  chartData: Array<{
+    timestamp: number;
+    value: number;
+  }>;
+}
 
 export function PortfolioPage() {
+  const { address } = useAuth();
   const chartRef = useRef<HTMLCanvasElement>(null);
+  const chartInstanceRef = useRef<any>(null);
+  const [portfolioData, setPortfolioData] = useState<PortfolioData | null>(null);
+  const [selectedChain, setSelectedChain] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const fetchPortfolioData = async () => {
+    if (!address) return;
+    
+    setLoading(true);
+    try {
+      const queryParams = new URLSearchParams();
+      if (selectedChain) {
+        queryParams.append("chainId", selectedChain.toString());
+      }
+      
+      const response = await fetch(`/api/portfolio/${address}?${queryParams}`);
+      const result = await response.json();
+      
+      if (result.success) {
+        setPortfolioData(result.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch portfolio:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    if (chartRef.current) {
+    if (address) {
+      fetchPortfolioData();
+    }
+  }, [address, selectedChain]);
+
+  useEffect(() => {
+    if (chartRef.current && portfolioData?.chartData) {
       const ctx = chartRef.current.getContext("2d");
       if (ctx) {
         // Import Chart.js dynamically
         import("chart.js/auto").then(({ Chart }) => {
-          new Chart(ctx, {
+          // Destroy existing chart if it exists
+          if (chartInstanceRef.current) {
+            chartInstanceRef.current.destroy();
+          }
+
+          // Create new chart and store reference
+          chartInstanceRef.current = new Chart(ctx, {
             type: "line",
             data: {
-              labels: [
-                "Jan",
-                "Feb",
-                "Mar",
-                "Apr",
-                "May",
-                "Jun",
-                "Jul",
-                "Aug",
-                "Sep",
-                "Oct",
-                "Nov",
-                "Dec",
-              ],
+              labels: portfolioData.chartData.map(point => 
+                new Date(point.timestamp).toLocaleDateString("en-US", { 
+                  month: "short", 
+                  day: "numeric" 
+                })
+              ),
               datasets: [
                 {
                   label: "Portfolio Value",
-                  data: [
-                    1250, 1260, 1280, 1275, 1300, 1310, 1330, 1320, 1340, 1355,
-                    1370, 1385.5,
-                  ],
+                  data: portfolioData.chartData.map(point => point.value),
                   borderColor: "#8b5cf6",
                   backgroundColor: "rgba(139, 92, 246, 0.1)",
                   borderWidth: 3,
@@ -102,7 +153,31 @@ export function PortfolioPage() {
         });
       }
     }
-  }, []);
+
+    // Cleanup function to destroy chart when component unmounts
+    return () => {
+      if (chartInstanceRef.current) {
+        chartInstanceRef.current.destroy();
+        chartInstanceRef.current = null;
+      }
+    };
+  }, [portfolioData?.chartData]);
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+    }).format(value);
+  };
+
+  const formatPercent = (value: number) => {
+    return `${value >= 0 ? "+" : ""}${value.toFixed(2)}%`;
+  };
+
+  const getChainName = (chainId: number) => {
+    const chain = SUPPORTED_CHAINS.find(c => c.id === chainId);
+    return chain?.name || `Chain ${chainId}`;
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -136,12 +211,14 @@ export function PortfolioPage() {
                   <h3 className="text-2xl font-bold tracking-tight text-white">
                     Portfolio Growth
                   </h3>
-                  <p className="text-gray-500">Past 12 months</p>
+                  <p className="text-gray-500">Past {portfolioData?.chartData?.length || 0} data points</p>
                 </div>
                 <div className="flex items-center gap-4 mt-4 sm:mt-0">
                   <span className="text-sm font-medium text-gray-500">
-                    Total Growth:{" "}
-                    <span className="text-green font-bold">+10.84%</span>
+                    Current Value:{" "}
+                    <span className="text-green font-bold">
+                      {formatCurrency(portfolioData?.totalValueUsd || 0)}
+                    </span>
                   </span>
                   <div className="flex gap-1 rounded-lg bg-gray-700 p-1">
                     <button className="px-3 py-1 text-sm font-medium rounded-md bg-purple text-white">
@@ -165,74 +242,74 @@ export function PortfolioPage() {
             </div>
           </div>
 
-          {/* Jar Breakdown Table */}
+          {/* Token Holdings Table */}
           <div className="flex flex-col gap-4">
             <h2 className="px-2 text-2xl font-bold tracking-tight text-white">
-              Jar Breakdown
+              Token Holdings
             </h2>
             <div className="overflow-x-auto rounded-2xl bg-gray-800 shadow-lg">
               <table className="w-full text-left">
                 <thead className="border-b border-gray-700">
                   <tr>
                     <th className="px-6 py-4 text-sm font-medium text-gray-500">
-                      Jar Name
+                      Token
                     </th>
                     <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">
-                      Amount Invested
+                      Balance
                     </th>
                     <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">
-                      Current Value
+                      Value (USD)
                     </th>
                     <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">
-                      ROI %
+                      Price
                     </th>
                     <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">
-                      Status
+                      Chain
                     </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {/* ETH Row */}
-                  <tr className="border-b border-gray-700 transition-colors hover:bg-background">
-                    <td className="px-6 py-4 align-middle">
-                      <div className="flex items-center gap-3">
-                        <div className="flex items-center">
-                          <img
-                            alt="ETH logo"
-                            className="h-8 w-8 rounded-full border-2 border-solid border-gray-800"
-                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuAWQ-il5WeLPfoAdRKHdWiPt34EfFWVyBQ1w3qz1TsXpHCruIBqND4IEMOBDp4u1WxbfV8D4NvzogLZiVwgKPM55Zgx4wSMNLE-V2gr-IXQjfKGYwy7GC1U2nSV_Cr_MrnuD5WDAXheQSGKDEiyrSXtyQg4hnvcDIHRVIH3UJHa-Ly4SYafVAJljpmxwUMlMKyB0L6iliBCDVfmeOZWctfMIZoQfmzVMjJczdQe8ykorvwB7gtdnpTNT-0UDzUtOEnW_YT_9teN5A"
-                          />
-                          <img
-                            alt="Chain logo"
-                            className="h-8 w-8 -ml-3 rounded-full border-2 border-solid border-gray-800"
-                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuASQNCbeVPuM6Yk2p9yGyXqAAjif5mDKDjfonGi2K6wsMHe_tYSV-swTcw90goX02_Oy68GkXXG8BMGOlOPn9m38AXYXMIbbdN-f_9IklIlt4L3tCbnUImdSCuV_0U9JGQwyOP1Hko5EwsE8ifV_vVhJBlBsaH4rPlonR67lnYEbYGImapbiZQlcI7m27yai204g1JkPV7mE8ViLiVEkjDbXcLAWmqH54Aw_FhkRVe8MAxqXGfc82NHXRTgS1Qf-gw2a0vN-jFl-Q"
-                          />
-                        </div>
-                        <div>
-                          <div className="font-medium text-white">
-                            ETH/Ethereum
+                  {portfolioData?.tokens?.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="text-center py-8 text-gray-400">
+                        No tokens found in your portfolio
+                      </td>
+                    </tr>
+                  ) : (
+                    portfolioData?.tokens?.map((token, index) => (
+                      <tr key={`${token.address}-${token.chainId}`} className="border-b border-gray-700 transition-colors hover:bg-background">
+                        <td className="px-6 py-4 align-middle">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center text-xs font-mono text-white">
+                              {token.symbol.slice(0, 2)}
+                            </div>
+                            <div>
+                              <div className="font-medium text-white">
+                                {token.symbol}
+                              </div>
+                              <div className="text-xs text-gray-400">
+                                {token.name}
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 align-middle text-white">
-                      $500.00
-                    </td>
-                    <td className="px-6 py-4 align-middle text-white">
-                      $562.50
-                    </td>
-                    <td className="px-6 py-4 align-middle text-green">
-                      +12.5%
-                    </td>
-                    <td className="px-6 py-4 align-middle">
-                      <button className="flex items-center gap-2 rounded-full bg-green/20 px-3 py-1 text-sm font-medium text-green">
-                        <span className="text-lg">⏸️</span>
-                        <span>Active</span>
-                      </button>
-                    </td>
-                  </tr>
-
-                  {/* MATIC Row */}
+                        </td>
+                        <td className="px-6 py-4 align-middle text-white">
+                          {parseFloat(token.balance).toFixed(4)} {token.symbol}
+                        </td>
+                        <td className="px-6 py-4 align-middle text-white">
+                          {formatCurrency(token.balanceUsd)}
+                        </td>
+                        <td className="px-6 py-4 align-middle text-white">
+                          {formatCurrency(token.price)}
+                        </td>
+                        <td className="px-6 py-4 align-middle">
+                          <span className="inline-flex items-center rounded-full bg-blue-500/20 px-2 py-1 text-xs font-medium text-blue-400">
+                            {getChainName(token.chainId)}
+                          </span>
+                        </td>
+                      </tr>
+                    )) || []
+                  )}
                   <tr className="border-b border-gray-700 transition-colors hover:bg-background">
                     <td className="px-6 py-4 align-middle">
                       <div className="flex items-center gap-3">

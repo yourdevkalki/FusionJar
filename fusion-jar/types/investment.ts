@@ -79,7 +79,63 @@ export interface CreateInvestmentFormData {
   sourceChain: number;
   targetToken: string;
   targetChain: number;
-  amountUsd: number;
-  frequency: "daily" | "weekly";
-  feeTolerance: number;
+  amount: number;
+  amountUnit: string; // Token symbol
+  frequency: "daily" | "weekly" | "monthly" | "custom";
+  customDays?: number;
+  startDate: string;
+  jarName: string;
+  saveAsTemplate?: boolean;
+  // Advanced settings
+  gasLimit?: string;
+  minSlippage?: number;
+  deadline?: number; // minutes
+  stopAfterSwaps?: number;
+}
+
+export interface TokenSearchResult {
+  address: string;
+  symbol: string;
+  name: string;
+  decimals: number;
+  chainCompatibility: {
+    chainId: number;
+    chainName: string;
+    supported: boolean;
+  }[];
+}
+
+export interface HistoryTransaction {
+  txHash: string;
+  blockNumber: number;
+  timeStamp: string;
+  from: string;
+  to: string;
+  value: string;
+  status: "1" | "0"; // 1 = success, 0 = failed
+  srcToken?: {
+    symbol: string;
+    name: string;
+    decimals: number;
+    address: string;
+  };
+  dstToken?: {
+    symbol: string;
+    name: string;
+    decimals: number;
+    address: string;
+  };
+  srcAmount?: string;
+  dstAmount?: string;
+  chainId: number;
+  gas: string;
+  gasPrice: string;
+  gasUsed: string;
+}
+
+export interface HistoryData {
+  transactions: HistoryTransaction[];
+  total: number;
+  page: number;
+  limit: number;
 }

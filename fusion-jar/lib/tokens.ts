@@ -10,7 +10,7 @@ export const SUPPORTED_CHAINS = [
 export const TOKENS: TokenInfo[] = [
   // Ethereum tokens
   {
-    address: "0xA0b86a33E6441b8C4C8C8C8C8C8C8C8C8C8C8C8C",
+    address: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
     symbol: "USDC",
     name: "USD Coin",
     decimals: 6,
@@ -55,7 +55,7 @@ export const TOKENS: TokenInfo[] = [
 
   // Polygon tokens
   {
-    address: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+    address: "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359",
     symbol: "USDC",
     name: "USD Coin",
     decimals: 6,

@@ -553,6 +553,108 @@ export class OneInchAPI {
     return this.createFusionOrder(params);
   }
 
+  // Get transaction history for an address using the correct 1inch History API endpoint
+  async getHistory(params: {
+    address: string;
+    chainId?: number;
+    page?: number;
+    limit?: number;
+  }) {
+    // Using the correct endpoint: /v2.0/history/{address}/events
+    // Based on https://portal.1inch.dev/documentation/apis/history/swagger
+    const queryParams = new URLSearchParams();
+    
+    if (params.chainId) {
+      queryParams.append("chainId", params.chainId.toString());
+    }
+    if (params.page) {
+      queryParams.append("page", params.page.toString()); 
+    }
+    if (params.limit) {
+      queryParams.append("limit", params.limit.toString());
+    }
+
+    const url = `${INCH_API_BASE}/history/v2.0/history/${params.address}/events${queryParams.toString() ? `?${queryParams}` : ''}`;
+    
+    console.log("Getting 1inch history with params:", params);
+    console.log("Calling 1inch History API:", url);
+
+    const response = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${this.apiKey}`,
+        Accept: "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("1inch History API error response:", {
+        status: response.status,
+        statusText: response.statusText,
+        body: errorText,
+      });
+      throw new Error(
+        `1inch History API error: ${response.status} - ${response.statusText}`
+      );
+    }
+
+    return response.json();
+  }
+
+  // Get token prices from multiple chains for portfolio calculation
+  async getMultiChainPrices(tokenAddresses: string[], chainIds: number[] = [1, 137, 8453]) {
+    const prices: Record<string, number> = {};
+    
+    for (const chainId of chainIds) {
+      for (const tokenAddress of tokenAddresses) {
+        try {
+          const priceData = await this.getTokenPrice({ tokenAddress, chainId });
+          const key = `${chainId}-${tokenAddress.toLowerCase()}`;
+          prices[key] = parseFloat(priceData[tokenAddress] || "0");
+        } catch (error) {
+          console.warn(`Failed to get price for ${tokenAddress} on chain ${chainId}:`, error);
+          // Continue with other tokens
+        }
+      }
+    }
+    
+    return prices;
+  }
+
+  // Get token prices using 1inch Spot Price API
+  async getTokenPrice(params: {
+    tokenAddress: string;
+    chainId?: number;
+  }) {
+    // Using Spot Price API: /v1.1/{chainId}/{tokenAddress}
+    const chainId = params.chainId || 1; // Default to Ethereum
+    const url = `${INCH_API_BASE}/price/v1.1/${chainId}/${params.tokenAddress}`;
+    
+    console.log("Getting 1inch token price with params:", params);
+    console.log("Calling 1inch Spot Price API:", url);
+
+    const response = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${this.apiKey}`,
+        Accept: "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("1inch Spot Price API error response:", {
+        status: response.status,
+        statusText: response.statusText,
+        body: errorText,
+      });
+      throw new Error(
+        `1inch Spot Price API error: ${response.status} - ${response.statusText}`
+      );
+    }
+
+    return response.json();
+  }
+
   async executeIntent(params: {
     intentId: string;
     signature: string;

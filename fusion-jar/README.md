@@ -114,7 +114,7 @@ fusion-jar/
 
 ### POST `/api/investments/create`
 
-Creates a new investment intent.
+Creates a new investment intent with enhanced features.
 
 **Request Body:**
 
@@ -124,11 +124,59 @@ Creates a new investment intent.
   "sourceChain": 1,
   "targetToken": "0x...",
   "targetChain": 1,
-  "amountUsd": 5.0,
+  "amount": 100.0,
+  "amountUnit": "USDC",
   "frequency": "weekly",
-  "feeTolerance": 0.5
+  "customDays": 7,
+  "startDate": "2024-07-15",
+  "jarName": "My Weekly DCA Jar",
+  "saveAsTemplate": false,
+  "gasLimit": "auto",
+  "minSlippage": 0.5,
+  "deadline": 20,
+  "stopAfterSwaps": 100
 }
 ```
+
+### GET `/api/tokens/search/[address]`
+
+Search for token information by contract address.
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "token": {
+    "address": "0x...",
+    "symbol": "UNI",
+    "name": "Uniswap",
+    "decimals": 18,
+    "chainCompatibility": [
+      {"chainId": 1, "chainName": "Ethereum", "supported": true}
+    ]
+  }
+}
+```
+
+### POST `/api/tokens/validate`
+
+Validate a token contract address.
+
+**Request Body:**
+```json
+{
+  "address": "0x..."
+}
+```
+
+### GET `/api/templates`
+
+Get user's saved investment templates.
+
+### POST `/api/templates`
+
+Save a new investment template.
 
 ### POST `/api/investments/quote`
 
