@@ -70,6 +70,7 @@ CREATE TABLE IF NOT EXISTS gamification_data (
   total_investments INTEGER DEFAULT 0,
   badges_earned TEXT[] DEFAULT '{}',
   last_investment_date TIMESTAMP WITH TIME ZONE,
+  last_login_date TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

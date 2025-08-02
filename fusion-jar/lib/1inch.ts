@@ -5,7 +5,6 @@ import {
   PrivateKeyProviderConnector,
   Web3Like,
   QuoteParams,
-  CreateOrderParams,
 } from "@1inch/fusion-sdk";
 import { JsonRpcProvider, computeAddress } from "ethers";
 
@@ -31,6 +30,72 @@ export class OneInchAPI {
 
   constructor(apiKey: string) {
     this.apiKey = apiKey;
+  }
+
+  // Get wallet balances using 1inch Balance API
+  async getWalletBalances(address: string, chainId: number = 1) {
+    try {
+      const url = `${INCH_API_BASE}/balance/v1.2/${chainId}/balances/${address}`;
+      
+      console.log(`🔍 Fetching balances from: ${url}`);
+      console.log(`🔑 Using API key: ${this.apiKey ? this.apiKey.substring(0, 8) + '...' : 'MISSING'}`);
+      
+      const response = await fetch(url, {
+        headers: {
+          "Authorization": `Bearer ${this.apiKey}`,
+          "accept": "application/json",
+          "content-type": "application/json",
+        },
+      });
+
+      console.log(`📡 Response status: ${response.status} ${response.statusText}`);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`❌ 1inch API Error Response: ${errorText}`);
+        throw new Error(`1inch Balance API error: ${response.status} - ${errorText}`);
+      }
+
+      const data = await response.json();
+      console.log(`✅ Successfully fetched balances. Token count: ${Object.keys(data).length}`);
+      return data;
+    } catch (error) {
+      console.error("Error fetching wallet balances:", error);
+      throw error;
+    }
+  }
+
+  // Get specific token balance
+  async getTokenBalance(address: string, tokenAddress: string, chainId: number = 1) {
+    try {
+      const url = `${INCH_API_BASE}/balance/v1.2/${chainId}/balances/${address}`;
+      
+      const response = await fetch(url, {
+        headers: {
+          "Authorization": `Bearer ${this.apiKey}`,
+          "accept": "application/json",
+          "content-type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`❌ 1inch API Error Response: ${errorText}`);
+        throw new Error(`1inch Balance API error: ${response.status} - ${errorText}`);
+      }
+
+      const data = await response.json();
+      
+      // Filter for the specific token if needed
+      if (tokenAddress && data[tokenAddress]) {
+        return { [tokenAddress]: data[tokenAddress] };
+      }
+      
+      return data;
+    } catch (error) {
+      console.error("Error fetching token balance:", error);
+      throw error;
+    }
   }
 
   // Initialize Fusion SDK with proper configuration
@@ -386,7 +451,7 @@ export class OneInchAPI {
     try {
       const sdk = await this.initializeFusionSDK(params.chainId);
 
-      const orderParams: CreateOrderParams = {
+      const orderParams = {
         fromTokenAddress: params.src,
         toTokenAddress: params.dst,
         amount: params.amount,
@@ -672,4 +737,19 @@ export class OneInchAPI {
   }
 }
 
-export const oneInchAPI = new OneInchAPI(process.env.INCH_API_KEY!);
+// Try different possible environment variable names for API key
+const getApiKey = () => {
+  const apiKey = process.env.INCH_API_KEY || 
+                 process.env.ONE_INCH_API_KEY || 
+                 process.env.ONEINCH_API_KEY;
+  
+  if (!apiKey) {
+    console.error("❌ No 1inch API key found. Please set INCH_API_KEY in your .env.local file");
+    throw new Error("1inch API key not configured");
+  }
+  
+  console.log(`✅ 1inch API key loaded: ${apiKey.substring(0, 8)}...`);
+  return apiKey;
+};
+
+export const oneInchAPI = new OneInchAPI(getApiKey());

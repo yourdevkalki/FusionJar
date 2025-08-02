@@ -3,6 +3,7 @@ import { supabase } from "./supabase";
 export interface GamificationEvent {
   type:
     | "investment_executed"
+    | "daily_login"
     | "streak_milestone"
     | "badge_earned"
     | "first_investment"
@@ -133,6 +134,7 @@ export async function updateGamificationData(
           total_investments: 0,
           badges_earned: [],
           last_investment_date: null,
+          last_login_date: null,
         })
         .select()
         .single();
@@ -159,19 +161,16 @@ export async function updateGamificationData(
 
     // Process the event
     switch (event.type) {
-      case "investment_executed":
-        xpGained += 10; // Base XP for investment
-        if (event.amount) {
-          xpGained += Math.floor(event.amount / 10); // Additional XP based on amount
-        }
+      case "daily_login":
+        xpGained += 20; // 20 XP for daily login
 
-        // Update streak
+        // Update login streak
         const today = new Date();
-        const lastInvestment = gamificationData.last_investment_date
-          ? new Date(gamificationData.last_investment_date)
+        const lastLogin = gamificationData.last_login_date
+          ? new Date(gamificationData.last_login_date)
           : null;
 
-        if (!lastInvestment || isConsecutiveDay(today, lastInvestment)) {
+        if (!lastLogin || isConsecutiveDay(today, lastLogin)) {
           gamificationData.current_streak += 1;
         } else {
           gamificationData.current_streak = 1;
@@ -182,9 +181,21 @@ export async function updateGamificationData(
           gamificationData.current_streak
         );
 
-        gamificationData.total_investments += 1;
-        gamificationData.last_investment_date = today.toISOString();
+        gamificationData.last_login_date = today.toISOString();
+        
+        // Check for 7-day streak bonus
+        if (gamificationData.current_streak >= 7) {
+          xpGained += 50; // 50 XP bonus for 7-day streak
+        }
+        
         streakUpdated = true;
+        break;
+
+      case "investment_executed":
+        xpGained += 30; // 30 XP for single investment
+
+        gamificationData.total_investments += 1;
+        gamificationData.last_investment_date = new Date().toISOString();
         break;
 
       case "streak_milestone":
@@ -218,6 +229,9 @@ export async function updateGamificationData(
     if (streakUpdated) {
       updateData.current_streak = gamificationData.current_streak;
       updateData.longest_streak = gamificationData.longest_streak;
+      if (gamificationData.last_login_date) {
+        updateData.last_login_date = gamificationData.last_login_date;
+      }
     }
 
     if (newBadges.length > 0) {
@@ -300,15 +314,69 @@ export async function getUserGamificationData(userAddress: string) {
       .eq("user_address", userAddress)
       .single();
 
-    if (error) {
+    if (error && error.code === "PGRST116") {
+      // User doesn't exist, create new record with default values
+      console.log(`🆕 Creating new gamification data for user: ${userAddress}`);
+      const { data: newData, error: createError } = await supabase
+        .from("gamification_data")
+        .insert({
+          user_address: userAddress,
+          xp_points: 0,
+          current_streak: 0,
+          longest_streak: 0,
+          total_investments: 0,
+          badges_earned: [],
+          last_investment_date: null,
+          last_login_date: null,
+        })
+        .select()
+        .single();
+
+      if (createError) {
+        console.error("Error creating gamification data:", createError);
+        // Return default data instead of null
+        return {
+          user_address: userAddress,
+          xp_points: 0,
+          current_streak: 0,
+          longest_streak: 0,
+          total_investments: 0,
+          badges_earned: [],
+          last_investment_date: null,
+          last_login_date: null,
+        };
+      }
+
+      return newData;
+    } else if (error) {
       console.error("Error fetching user gamification data:", error);
-      return null;
+      // Return default data instead of null for better UX
+      return {
+        user_address: userAddress,
+        xp_points: 0,
+        current_streak: 0,
+        longest_streak: 0,
+        total_investments: 0,
+        badges_earned: [],
+        last_investment_date: null,
+        last_login_date: null,
+      };
     }
 
     return data;
   } catch (error) {
     console.error("Error in getUserGamificationData:", error);
-    return null;
+    // Return default data instead of null for better UX
+    return {
+      user_address: userAddress,
+      xp_points: 0,
+      current_streak: 0,
+      longest_streak: 0,
+      total_investments: 0,
+      badges_earned: [],
+      last_investment_date: null,
+      last_login_date: null,
+    };
   }
 }
 
@@ -347,17 +415,56 @@ export function calculateLevel(xp: number): {
   xpToNext: number;
   progress: number;
 } {
-  const baseXP = 100;
-  const level = Math.floor(Math.sqrt(xp / baseXP)) + 1;
-  const xpForCurrentLevel = (level - 1) ** 2 * baseXP;
-  const xpForNextLevel = level ** 2 * baseXP;
+  // Level system: 10 XP increments per level
+  // Level 1: 0-9 XP, Level 2: 10-19 XP, Level 3: 20-29 XP, etc.
+  const level = Math.floor(xp / 10) + 1;
+  const xpForCurrentLevel = (level - 1) * 10;
+  const xpForNextLevel = level * 10;
   const xpToNext = xpForNextLevel - xp;
-  const progress =
-    ((xp - xpForCurrentLevel) / (xpForNextLevel - xpForCurrentLevel)) * 100;
+  const progress = ((xp - xpForCurrentLevel) / 10) * 100;
 
   return {
     level,
     xpToNext,
     progress: Math.min(progress, 100),
   };
+}
+
+export async function handleDailyLogin(userAddress: string) {
+  try {
+    // Get user's gamification data
+    const gamificationData = await getUserGamificationData(userAddress);
+    
+    if (!gamificationData) {
+      // Create new user data and grant login XP
+      return await updateGamificationData(userAddress, { type: "daily_login" });
+    }
+
+    // Check if user already logged in today
+    const today = new Date();
+    const lastLogin = gamificationData.last_login_date
+      ? new Date(gamificationData.last_login_date)
+      : null;
+
+    // If last login was today, don't grant XP again
+    if (lastLogin) {
+      const todayDateString = today.toDateString();
+      const lastLoginDateString = lastLogin.toDateString();
+      
+      if (todayDateString === lastLoginDateString) {
+        return {
+          xpGained: 0,
+          message: "Already logged in today",
+          totalXP: gamificationData.xp_points,
+          currentStreak: gamificationData.current_streak,
+        };
+      }
+    }
+
+    // Grant daily login XP
+    return await updateGamificationData(userAddress, { type: "daily_login" });
+  } catch (error) {
+    console.error("Error in handleDailyLogin:", error);
+    return null;
+  }
 }
