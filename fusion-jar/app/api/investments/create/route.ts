@@ -32,7 +32,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate custom frequency
-    if (body.frequency === "custom" && (!body.customDays || body.customDays <= 0)) {
+    if (
+      body.frequency === "custom" &&
+      (!body.customDays || body.customDays <= 0)
+    ) {
       return NextResponse.json(
         { error: "Custom frequency requires valid number of days" },
         { status: 400 }
@@ -43,7 +46,7 @@ export async function POST(request: NextRequest) {
     const startDate = new Date(body.startDate);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
+
     if (startDate < today) {
       return NextResponse.json(
         { error: "Start date cannot be in the past" },
@@ -54,10 +57,18 @@ export async function POST(request: NextRequest) {
     // Get authenticated user address
     const userAddress = requireAuth(request);
 
+    // Use wallet address from request body if provided, otherwise use authenticated address
+    const walletAddress = body.walletAddress || userAddress;
+
+    console.log("🔍 Debug - Creating jar with addresses:");
+    console.log("  - userAddress (from auth):", userAddress);
+    console.log("  - walletAddress (from body):", body.walletAddress);
+    console.log("  - final walletAddress:", walletAddress);
+
     // Prepare frequency data
     let frequencyValue = body.frequency;
     let intervalDays = 1;
-    
+
     switch (body.frequency) {
       case "daily":
         intervalDays = 1;
@@ -75,24 +86,20 @@ export async function POST(request: NextRequest) {
     }
 
     // Create investment intent in database
-    // Calculate amount_usd for backward compatibility (rough estimate)
-    const estimatedAmountUsd = body.amount * (body.amountUnit === 'USDC' || body.amountUnit === 'USDT' ? 1 : 
-                               body.amountUnit === 'ETH' ? 3000 : 
-                               body.amountUnit === 'BTC' ? 50000 : 
-                               body.amountUnit === 'WBTC' ? 50000 : 
-                               100); // default estimate
+    // Since amount is already in USD, use it directly
+    const amountUsd = body.amount;
 
     const { data: investmentIntent, error: dbError } = await supabase
       .from("investment_intents")
       .insert({
-        user_address: userAddress,
+        user_address: walletAddress.toLowerCase(), // Always store in lowercase
         source_token: body.sourceToken,
         source_chain: body.sourceChain,
         target_token: body.targetToken,
         target_chain: body.targetChain,
         amount: body.amount,
-        amount_unit: body.amountUnit,
-        amount_usd: estimatedAmountUsd, // Add this for backward compatibility
+        amount_unit: "USD", // Always USD since we're investing USD
+        amount_usd: amountUsd,
         frequency: frequencyValue,
         interval_days: intervalDays,
         start_date: body.startDate,
@@ -102,7 +109,7 @@ export async function POST(request: NextRequest) {
         min_slippage: body.minSlippage,
         deadline_minutes: body.deadline,
         stop_after_swaps: body.stopAfterSwaps,
-        fee_tolerance: 0.01, // Add default fee tolerance (1%)
+        fee_tolerance: body.minSlippage || 0.01, // Use minSlippage as fee tolerance
         status: "active",
       })
       .select()
@@ -121,11 +128,27 @@ export async function POST(request: NextRequest) {
     try {
       // Only get quote if source and target are on the same chain
       if (body.sourceChain === body.targetChain) {
+        // For USD investments, we need to convert to USDC amount
+        // Assuming 1 USD = 1 USDC (stablecoin)
+        const usdcAmount = (body.amount * 1e6).toString(); // USDC has 6 decimals
+
+        // Use USDC address based on chain
+        const usdcAddress =
+          body.sourceChain === 1
+            ? "0xA0b86a33E6441b8c4C8C0C8C0C8C0C8C0C8C0C8C" // Ethereum USDC (placeholder)
+            : body.sourceChain === 137
+            ? "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174" // Polygon USDC
+            : body.sourceChain === 56
+            ? "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d" // BSC USDC
+            : body.sourceChain === 8453
+            ? "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913" // Base USDC
+            : "0xA0b86a33E6441b8c4C8C0C8C0C8C0C8C0C8C0C8C"; // Default
+
         const quote = await oneInchAPI.getQuote({
-          src: body.sourceToken,
+          src: usdcAddress,
           dst: body.targetToken,
-          amount: (body.amount * 1e6).toString(), // USDC has 6 decimals, not 18
-          from: userAddress,
+          amount: usdcAmount,
+          from: walletAddress,
           chainId: body.sourceChain,
         });
 

@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { SUPPORTED_CHAINS } from "@/lib/tokens";
+import { toast } from "react-hot-toast";
 
 interface PortfolioData {
   totalValue: number;
@@ -24,27 +25,59 @@ interface PortfolioData {
   }>;
 }
 
+interface InvestmentIntent {
+  id: string;
+  user_address: string;
+  source_token: string;
+  source_chain: number;
+  target_token: string;
+  target_chain: number;
+  amount_usd: number;
+  frequency: string;
+  fee_tolerance: number;
+  status: "active" | "paused" | "cancelled";
+  created_at: string;
+  updated_at: string;
+  jar_name: string;
+  amount: number;
+  amount_unit: string;
+  interval_days: number;
+  start_date: string;
+  save_as_template: boolean;
+  gas_limit: string | null;
+  min_slippage: number | null;
+  deadline_minutes: number | null;
+  stop_after_swaps: number | null;
+}
+
 export function PortfolioPage() {
-  const { address } = useAuth();
+  const { address, authenticatedFetch } = useAuth();
   const chartRef = useRef<HTMLCanvasElement>(null);
   const chartInstanceRef = useRef<any>(null);
-  const [portfolioData, setPortfolioData] = useState<PortfolioData | null>(null);
+  const [portfolioData, setPortfolioData] = useState<PortfolioData | null>(
+    null
+  );
+  const [investmentIntents, setInvestmentIntents] = useState<
+    InvestmentIntent[]
+  >([]);
   const [selectedChain, setSelectedChain] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
+  const [jarsLoading, setJarsLoading] = useState(true);
+  const [expandedJars, setExpandedJars] = useState<Set<string>>(new Set());
 
   const fetchPortfolioData = async () => {
     if (!address) return;
-    
+
     setLoading(true);
     try {
       const queryParams = new URLSearchParams();
       if (selectedChain) {
         queryParams.append("chainId", selectedChain.toString());
       }
-      
+
       const response = await fetch(`/api/portfolio/${address}?${queryParams}`);
       const result = await response.json();
-      
+
       if (result.success) {
         setPortfolioData(result.data);
       }
@@ -55,9 +88,34 @@ export function PortfolioPage() {
     }
   };
 
+  const fetchInvestmentIntents = async () => {
+    if (!address) return;
+
+    console.log("🔍 Debug - Fetching intents for address:", address);
+    setJarsLoading(true);
+    try {
+      const response = await authenticatedFetch(
+        `/api/investments/user/${address}`
+      );
+      const result = await response.json();
+
+      console.log("🔍 Debug - API response:", result);
+
+      if (result.success) {
+        setInvestmentIntents(result.data);
+        console.log("🔍 Debug - Set intents:", result.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch investment intents:", error);
+    } finally {
+      setJarsLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (address) {
       fetchPortfolioData();
+      fetchInvestmentIntents();
     }
   }, [address, selectedChain]);
 
@@ -76,16 +134,16 @@ export function PortfolioPage() {
           chartInstanceRef.current = new Chart(ctx, {
             type: "line",
             data: {
-              labels: portfolioData.chartData.map(point => 
-                new Date(point.timestamp).toLocaleDateString("en-US", { 
-                  month: "short", 
-                  day: "numeric" 
+              labels: portfolioData.chartData.map((point) =>
+                new Date(point.timestamp).toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
                 })
               ),
               datasets: [
                 {
                   label: "Portfolio Value",
-                  data: portfolioData.chartData.map(point => point.value),
+                  data: portfolioData.chartData.map((point) => point.value),
                   borderColor: "#8b5cf6",
                   backgroundColor: "rgba(139, 92, 246, 0.1)",
                   borderWidth: 3,
@@ -175,9 +233,88 @@ export function PortfolioPage() {
   };
 
   const getChainName = (chainId: number) => {
-    const chain = SUPPORTED_CHAINS.find(c => c.id === chainId);
+    const chain = SUPPORTED_CHAINS.find((c) => c.id === chainId);
     return chain?.name || `Chain ${chainId}`;
   };
+
+  const handleStatusUpdate = async (
+    intentId: string,
+    newStatus: "active" | "paused" | "cancelled"
+  ) => {
+    try {
+      const response = await authenticatedFetch(
+        "/api/investments/update-status",
+        {
+          method: "PATCH",
+          body: JSON.stringify({
+            intentId,
+            status: newStatus,
+          }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (result.success) {
+        toast.success(`Jar ${newStatus} successfully`);
+        // Refresh the investment intents
+        fetchInvestmentIntents();
+      } else {
+        toast.error(result.error || "Failed to update jar status");
+      }
+    } catch (error) {
+      console.error("Failed to update jar status:", error);
+      toast.error("Failed to update jar status");
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "active":
+        return "bg-green-500/20 text-green-400";
+      case "paused":
+        return "bg-yellow-500/20 text-yellow-400";
+      case "cancelled":
+        return "bg-red-500/20 text-red-400";
+      default:
+        return "bg-gray-500/20 text-gray-400";
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case "active":
+        return "▶️";
+      case "paused":
+        return "⏸️";
+      case "cancelled":
+        return "⏹️";
+      default:
+        return "❓";
+    }
+  };
+
+  const toggleJarExpansion = (jarId: string) => {
+    setExpandedJars((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(jarId)) {
+        newSet.delete(jarId);
+      } else {
+        newSet.add(jarId);
+      }
+      return newSet;
+    });
+  };
+
+  const isJarExpanded = (jarId: string) => expandedJars.has(jarId);
 
   return (
     <div className="min-h-screen bg-background">
@@ -211,7 +348,9 @@ export function PortfolioPage() {
                   <h3 className="text-2xl font-bold tracking-tight text-white">
                     Portfolio Growth
                   </h3>
-                  <p className="text-gray-500">Past {portfolioData?.chartData?.length || 0} data points</p>
+                  <p className="text-gray-500">
+                    Past {portfolioData?.chartData?.length || 0} data points
+                  </p>
                 </div>
                 <div className="flex items-center gap-4 mt-4 sm:mt-0">
                   <span className="text-sm font-medium text-gray-500">
@@ -242,152 +381,450 @@ export function PortfolioPage() {
             </div>
           </div>
 
-          {/* Token Holdings Table */}
+          {/* My Jars Table */}
           <div className="flex flex-col gap-4">
             <h2 className="px-2 text-2xl font-bold tracking-tight text-white">
-              Token Holdings
+              My Jars
             </h2>
             <div className="overflow-x-auto rounded-2xl bg-gray-800 shadow-lg">
               <table className="w-full text-left">
                 <thead className="border-b border-gray-700">
                   <tr>
+                    <th className="px-6 py-4 text-sm font-medium text-gray-500 w-8">
+                      {/* Expand/Collapse column */}
+                    </th>
                     <th className="px-6 py-4 text-sm font-medium text-gray-500">
-                      Token
+                      Jar Name
                     </th>
                     <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">
-                      Balance
+                      Investment Amount
                     </th>
                     <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">
-                      Value (USD)
+                      Frequency
                     </th>
                     <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">
-                      Price
+                      Start Date
                     </th>
                     <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">
                       Chain
                     </th>
+                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">
+                      Status
+                    </th>
+                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {portfolioData?.tokens?.length === 0 ? (
+                  {jarsLoading ? (
                     <tr>
-                      <td colSpan={5} className="text-center py-8 text-gray-400">
-                        No tokens found in your portfolio
+                      <td
+                        colSpan={8}
+                        className="text-center py-8 text-gray-400"
+                      >
+                        Loading your jars...
+                      </td>
+                    </tr>
+                  ) : investmentIntents.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={8}
+                        className="text-center py-8 text-gray-400"
+                      >
+                        No investment jars found. Create your first jar!
                       </td>
                     </tr>
                   ) : (
-                    portfolioData?.tokens?.map((token, index) => (
-                      <tr key={`${token.address}-${token.chainId}`} className="border-b border-gray-700 transition-colors hover:bg-background">
-                        <td className="px-6 py-4 align-middle">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center text-xs font-mono text-white">
-                              {token.symbol.slice(0, 2)}
-                            </div>
-                            <div>
-                              <div className="font-medium text-white">
-                                {token.symbol}
+                    investmentIntents.map((intent) => (
+                      <React.Fragment key={intent.id}>
+                        <tr className="border-b border-gray-700 transition-colors hover:bg-background">
+                          <td className="px-6 py-4 align-middle">
+                            <button
+                              onClick={() => toggleJarExpansion(intent.id)}
+                              className="flex items-center justify-center w-6 h-6 rounded-full bg-gray-600 hover:bg-gray-500 transition-colors"
+                            >
+                              <svg
+                                className={`w-4 h-4 text-white transition-transform duration-200 ${
+                                  isJarExpanded(intent.id) ? "rotate-180" : ""
+                                }`}
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth="2"
+                                  d="M19 9l-7 7-7-7"
+                                />
+                              </svg>
+                            </button>
+                          </td>
+                          <td className="px-6 py-4 align-middle">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center text-xs font-mono text-white">
+                                {intent.jar_name?.slice(0, 2) || "J"}
                               </div>
-                              <div className="text-xs text-gray-400">
-                                {token.name}
+                              <div>
+                                <div className="font-medium text-white">
+                                  {intent.jar_name || "Unnamed Jar"}
+                                </div>
+                                <div className="text-xs text-gray-400">
+                                  Created {formatDate(intent.created_at)}
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 align-middle text-white">
-                          {parseFloat(token.balance).toFixed(4)} {token.symbol}
-                        </td>
-                        <td className="px-6 py-4 align-middle text-white">
-                          {formatCurrency(token.balanceUsd)}
-                        </td>
-                        <td className="px-6 py-4 align-middle text-white">
-                          {formatCurrency(token.price)}
-                        </td>
-                        <td className="px-6 py-4 align-middle">
-                          <span className="inline-flex items-center rounded-full bg-blue-500/20 px-2 py-1 text-xs font-medium text-blue-400">
-                            {getChainName(token.chainId)}
-                          </span>
-                        </td>
-                      </tr>
-                    )) || []
-                  )}
-                  <tr className="border-b border-gray-700 transition-colors hover:bg-background">
-                    <td className="px-6 py-4 align-middle">
-                      <div className="flex items-center gap-3">
-                        <div className="flex items-center">
-                          <img
-                            alt="MATIC logo"
-                            className="h-8 w-8 rounded-full border-2 border-solid border-gray-800"
-                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuAQqftcHo1Uo5eiwY8XU3fb13ACE3GTnfUONOp9GA-RmI28WTilMnyoQ0BcanMfnkni_wxP6bZxFuwKaJbrMsOr1QQ0pg2xDX2Qoj3QD7hFLuoZN6IAb5y6FP6ZCQ8qvkkx0HwwB84JusBzc6gZSsmzZDY3x5x4GXgeKvDZQCiOOatjKwXHGTEyRdQEdW7EvXekCfkIv2w4TIIYx3UsXWaX4FFXUNJGcwZTUq94AKBh4K50C8xFOCGHOKM-Jl5aT6niNjBFZNadZw"
-                          />
-                          <img
-                            alt="Chain logo"
-                            className="h-8 w-8 -ml-3 rounded-full border-2 border-solid border-gray-800"
-                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuCGfs6CzSe6nTBoIlaEQBSxwQ0aVNtTZb5CVryVNpRoxjTUu9UhnIHo2mRz9TlGQQdYvBNcT3fjrjfo9r3iXRQGAP5xh3l3f2XXcLBJZZRYhk5OnRbrrcxa9kFSsYrf8_mK4nsn6N7qEZwQ2dNjeuAoT0gDKIGmoyTv8iqhauaADbEdIY-40fN-niR8l_xc1ky4-DJ7DUcWb-e_vcXlmkWWZzB4SmBPO19Jm8JXUMBSskRGsfxiO0IkQvq8lxTZeBS15q4C85pVmA"
-                          />
-                        </div>
-                        <div>
-                          <div className="font-medium text-white">
-                            MATIC/Polygon
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 align-middle text-white">
-                      $400.00
-                    </td>
-                    <td className="px-6 py-4 align-middle text-white">
-                      $458.00
-                    </td>
-                    <td className="px-6 py-4 align-middle text-green">
-                      +14.5%
-                    </td>
-                    <td className="px-6 py-4 align-middle">
-                      <button className="flex items-center gap-2 rounded-full bg-gray-500/20 px-3 py-1 text-sm font-medium text-gray-500">
-                        <span className="text-lg">▶️</span>
-                        <span>Paused</span>
-                      </button>
-                    </td>
-                  </tr>
+                          </td>
+                          <td className="px-6 py-4 align-middle text-white">
+                            {formatCurrency(intent.amount_usd)}
+                          </td>
+                          <td className="px-6 py-4 align-middle text-white">
+                            {intent.frequency === "custom"
+                              ? `Every ${intent.interval_days} days`
+                              : intent.frequency.charAt(0).toUpperCase() +
+                                intent.frequency.slice(1)}
+                          </td>
+                          <td className="px-6 py-4 align-middle text-white">
+                            {formatDate(intent.start_date)}
+                          </td>
+                          <td className="px-6 py-4 align-middle">
+                            <span className="inline-flex items-center rounded-full bg-blue-500/20 px-2 py-1 text-xs font-medium text-blue-400">
+                              {getChainName(intent.source_chain)}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 align-middle">
+                            <span
+                              className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium ${getStatusColor(
+                                intent.status
+                              )}`}
+                            >
+                              <span className="text-sm">
+                                {getStatusIcon(intent.status)}
+                              </span>
+                              <span>
+                                {intent.status.charAt(0).toUpperCase() +
+                                  intent.status.slice(1)}
+                              </span>
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 align-middle">
+                            <div className="flex items-center gap-2">
+                              {intent.status === "active" && (
+                                <>
+                                  <button
+                                    onClick={() =>
+                                      handleStatusUpdate(intent.id, "paused")
+                                    }
+                                    className="flex items-center gap-1 rounded-full bg-yellow-500/20 px-2 py-1 text-xs font-medium text-yellow-400 hover:bg-yellow-500/30 transition-colors"
+                                  >
+                                    <span>⏸️</span>
+                                    <span>Pause</span>
+                                  </button>
+                                  <button
+                                    onClick={() =>
+                                      handleStatusUpdate(intent.id, "cancelled")
+                                    }
+                                    className="flex items-center gap-1 rounded-full bg-red-500/20 px-2 py-1 text-xs font-medium text-red-400 hover:bg-red-500/30 transition-colors"
+                                  >
+                                    <span>⏹️</span>
+                                    <span>Stop</span>
+                                  </button>
+                                </>
+                              )}
+                              {intent.status === "paused" && (
+                                <>
+                                  <button
+                                    onClick={() =>
+                                      handleStatusUpdate(intent.id, "active")
+                                    }
+                                    className="flex items-center gap-1 rounded-full bg-green-500/20 px-2 py-1 text-xs font-medium text-green-400 hover:bg-green-500/30 transition-colors"
+                                  >
+                                    <span>▶️</span>
+                                    <span>Resume</span>
+                                  </button>
+                                  <button
+                                    onClick={() =>
+                                      handleStatusUpdate(intent.id, "cancelled")
+                                    }
+                                    className="flex items-center gap-1 rounded-full bg-red-500/20 px-2 py-1 text-xs font-medium text-red-400 hover:bg-red-500/30 transition-colors"
+                                  >
+                                    <span>⏹️</span>
+                                    <span>Stop</span>
+                                  </button>
+                                </>
+                              )}
+                              {intent.status === "cancelled" && (
+                                <span className="text-xs text-gray-500">
+                                  No actions available
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
 
-                  {/* AVAX Row */}
-                  <tr className="transition-colors hover:bg-background">
-                    <td className="px-6 py-4 align-middle">
-                      <div className="flex items-center gap-3">
-                        <div className="flex items-center">
-                          <img
-                            alt="AVAX logo"
-                            className="h-8 w-8 rounded-full border-2 border-solid border-gray-800"
-                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuCfLSul3dPGg-qFTIbMUDKYyNFvJFavN-FpnskP7pUJ9cS9l3QDdqI_gyUeh3-ufLBLUpUl6s2amphu_fc2xt1-N3EXppldZ7bknc4HfwXc5Hr4_3-CofjPNfMinBHavMNVoxp2gxJxtFKITtOXtR_P1vHc_pTdHLlT7sjwJDl2xygWbMNfDk6obyNMmzlUceTI4TnOgHz9CkPvY6_IdCr6HfZ4yJunvwR4LK3CP-nRpSx633SPMRR3pQcTTgFM6Xaioj0KVuxRYA"
-                          />
-                          <img
-                            alt="Chain logo"
-                            className="h-8 w-8 -ml-3 rounded-full border-2 border-solid border-gray-800"
-                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuBjERa3fs3j1_beC--AVsE7xvMaK6SMCiXN4pxiBJbnT7I9FKlTMNDAv3fr3VBtff18ZQhXLDgndwHNMJn5h2Ms0gN5Jk67PdNimNzjxrhh4hB_ppo7K1k8opyo2oWsY_3S0xQN8K17mfsHreiEVaWwbgkUei5wixYr4AZr7ZZFKl1oF9kIYiKVUc1JaI2q1gNXCTm_9vDZ14LrKj_iJviFvqBvo6BTjNUIrbXVtPbm2X_EKWzfUHj_quXabXPJ7UWSbygVXx9v0w"
-                          />
-                        </div>
-                        <div>
-                          <div className="font-medium text-white">
-                            AVAX/Avalanche
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 align-middle text-white">
-                      $350.00
-                    </td>
-                    <td className="px-6 py-4 align-middle text-white">
-                      $365.00
-                    </td>
-                    <td className="px-6 py-4 align-middle text-green">
-                      +4.28%
-                    </td>
-                    <td className="px-6 py-4 align-middle">
-                      <button className="flex items-center gap-2 rounded-full bg-green/20 px-3 py-1 text-sm font-medium text-green">
-                        <span className="text-lg">⏸️</span>
-                        <span>Active</span>
-                      </button>
-                    </td>
-                  </tr>
+                        {/* Expanded Details Row */}
+                        {isJarExpanded(intent.id) && (
+                          <tr
+                            key={`${intent.id}-details`}
+                            className="bg-gray-900/50"
+                          >
+                            <td colSpan={8} className="px-6 py-6">
+                              <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+                                <h4 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                                  <svg
+                                    className="w-5 h-5 text-purple-400"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth="2"
+                                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                    />
+                                  </svg>
+                                  Jar Details
+                                </h4>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                  {/* Basic Information */}
+                                  <div className="space-y-3">
+                                    <h5 className="text-sm font-medium text-gray-400 uppercase tracking-wide">
+                                      Basic Information
+                                    </h5>
+                                    <div className="space-y-2">
+                                      <div className="flex justify-between">
+                                        <span className="text-gray-400">
+                                          Jar ID:
+                                        </span>
+                                        <span className="text-white font-mono text-sm">
+                                          {intent.id.slice(0, 8)}...
+                                        </span>
+                                      </div>
+                                      <div className="flex justify-between">
+                                        <span className="text-gray-400">
+                                          Created:
+                                        </span>
+                                        <span className="text-white">
+                                          {formatDate(intent.created_at)}
+                                        </span>
+                                      </div>
+                                      <div className="flex justify-between">
+                                        <span className="text-gray-400">
+                                          Last Updated:
+                                        </span>
+                                        <span className="text-white">
+                                          {formatDate(intent.updated_at)}
+                                        </span>
+                                      </div>
+                                      <div className="flex justify-between">
+                                        <span className="text-gray-400">
+                                          Save as Template:
+                                        </span>
+                                        <span
+                                          className={`${
+                                            intent.save_as_template
+                                              ? "text-green-400"
+                                              : "text-gray-400"
+                                          }`}
+                                        >
+                                          {intent.save_as_template
+                                            ? "Yes"
+                                            : "No"}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* Investment Details */}
+                                  <div className="space-y-3">
+                                    <h5 className="text-sm font-medium text-gray-400 uppercase tracking-wide">
+                                      Investment Details
+                                    </h5>
+                                    <div className="space-y-2">
+                                      <div className="flex justify-between">
+                                        <span className="text-gray-400">
+                                          Amount:
+                                        </span>
+                                        <span className="text-white font-semibold">
+                                          {formatCurrency(intent.amount_usd)}
+                                        </span>
+                                      </div>
+                                      <div className="flex justify-between">
+                                        <span className="text-gray-400">
+                                          Amount Unit:
+                                        </span>
+                                        <span className="text-white">
+                                          {intent.amount_unit}
+                                        </span>
+                                      </div>
+                                      <div className="flex justify-between">
+                                        <span className="text-gray-400">
+                                          Frequency:
+                                        </span>
+                                        <span className="text-white capitalize">
+                                          {intent.frequency}
+                                        </span>
+                                      </div>
+                                      <div className="flex justify-between">
+                                        <span className="text-gray-400">
+                                          Interval Days:
+                                        </span>
+                                        <span className="text-white">
+                                          {intent.interval_days} days
+                                        </span>
+                                      </div>
+                                      <div className="flex justify-between">
+                                        <span className="text-gray-400">
+                                          Start Date:
+                                        </span>
+                                        <span className="text-white">
+                                          {formatDate(intent.start_date)}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* Token & Chain Information */}
+                                  <div className="space-y-3">
+                                    <h5 className="text-sm font-medium text-gray-400 uppercase tracking-wide">
+                                      Token & Chain
+                                    </h5>
+                                    <div className="space-y-2">
+                                      <div className="flex justify-between">
+                                        <span className="text-gray-400">
+                                          Source Token:
+                                        </span>
+                                        <span className="text-white font-mono text-sm">
+                                          {intent.source_token.slice(0, 8)}...
+                                        </span>
+                                      </div>
+                                      <div className="flex justify-between">
+                                        <span className="text-gray-400">
+                                          Target Token:
+                                        </span>
+                                        <span className="text-white font-mono text-sm">
+                                          {intent.target_token.slice(0, 8)}...
+                                        </span>
+                                      </div>
+                                      <div className="flex justify-between">
+                                        <span className="text-gray-400">
+                                          Source Chain:
+                                        </span>
+                                        <span className="text-white">
+                                          {getChainName(intent.source_chain)}
+                                        </span>
+                                      </div>
+                                      <div className="flex justify-between">
+                                        <span className="text-gray-400">
+                                          Target Chain:
+                                        </span>
+                                        <span className="text-white">
+                                          {getChainName(intent.target_chain)}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* Advanced Settings */}
+                                  <div className="space-y-3">
+                                    <h5 className="text-sm font-medium text-gray-400 uppercase tracking-wide">
+                                      Advanced Settings
+                                    </h5>
+                                    <div className="space-y-2">
+                                      <div className="flex justify-between">
+                                        <span className="text-gray-400">
+                                          Min Slippage:
+                                        </span>
+                                        <span className="text-white">
+                                          {intent.min_slippage || "Not set"}%
+                                        </span>
+                                      </div>
+                                      <div className="flex justify-between">
+                                        <span className="text-gray-400">
+                                          Fee Tolerance:
+                                        </span>
+                                        <span className="text-white">
+                                          {intent.fee_tolerance}%
+                                        </span>
+                                      </div>
+                                      <div className="flex justify-between">
+                                        <span className="text-gray-400">
+                                          Deadline:
+                                        </span>
+                                        <span className="text-white">
+                                          {intent.deadline_minutes || "Not set"}{" "}
+                                          min
+                                        </span>
+                                      </div>
+                                      <div className="flex justify-between">
+                                        <span className="text-gray-400">
+                                          Gas Limit:
+                                        </span>
+                                        <span className="text-white">
+                                          {intent.gas_limit || "Auto"}
+                                        </span>
+                                      </div>
+                                      <div className="flex justify-between">
+                                        <span className="text-gray-400">
+                                          Stop After:
+                                        </span>
+                                        <span className="text-white">
+                                          {intent.stop_after_swaps ||
+                                            "No limit"}{" "}
+                                          swaps
+                                        </span>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* Status Information */}
+                                  <div className="space-y-3">
+                                    <h5 className="text-sm font-medium text-gray-400 uppercase tracking-wide">
+                                      Status
+                                    </h5>
+                                    <div className="space-y-2">
+                                      <div className="flex justify-between">
+                                        <span className="text-gray-400">
+                                          Current Status:
+                                        </span>
+                                        <span
+                                          className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium ${getStatusColor(
+                                            intent.status
+                                          )}`}
+                                        >
+                                          <span className="text-sm">
+                                            {getStatusIcon(intent.status)}
+                                          </span>
+                                          <span>
+                                            {intent.status
+                                              .charAt(0)
+                                              .toUpperCase() +
+                                              intent.status.slice(1)}
+                                          </span>
+                                        </span>
+                                      </div>
+                                      <div className="flex justify-between">
+                                        <span className="text-gray-400">
+                                          User Address:
+                                        </span>
+                                        <span className="text-white font-mono text-sm">
+                                          {intent.user_address.slice(0, 6)}...
+                                          {intent.user_address.slice(-4)}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </React.Fragment>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>

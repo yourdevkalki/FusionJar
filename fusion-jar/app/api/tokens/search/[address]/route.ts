@@ -2,27 +2,41 @@ import { NextRequest, NextResponse } from "next/server";
 import { TOKENS, SUPPORTED_CHAINS } from "@/lib/tokens";
 import { TokenSearchResult } from "@/types/investment";
 
-// Basic token validation regex
+// 1inch API configuration
+const ONEINCH_API_KEY =
+  process.env.ONEINCH_API_KEY || "OJirsGx8kPk93jqcoUbE9ND2thpG8UmY";
+const ONEINCH_BASE_URL = "https://api.1inch.dev";
+
+// Address validation regexes
 const ETH_ADDRESS_REGEX = /^0x[a-fA-F0-9]{40}$/;
+const SOLANA_ADDRESS_REGEX = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { address: string } }
+  { params }: { params: Promise<{ address: string }> }
 ) {
   try {
-    const { address } = params;
+    const { address } = await params;
 
-    // Validate address format
-    if (!ETH_ADDRESS_REGEX.test(address)) {
+    // Validate address format (Ethereum or Solana)
+    const isEthAddress = ETH_ADDRESS_REGEX.test(address);
+    const isSolanaAddress = SOLANA_ADDRESS_REGEX.test(address);
+
+    if (!isEthAddress && !isSolanaAddress) {
       return NextResponse.json(
-        { error: "Invalid address format" },
+        {
+          error:
+            "Invalid address format. Must be a valid Ethereum (0x...) or Solana address",
+        },
         { status: 400 }
       );
     }
 
     // Check if token exists in our predefined list
-    const existingToken = TOKENS.find(
-      (token) => token.address.toLowerCase() === address.toLowerCase()
+    const existingToken = TOKENS.find((token) =>
+      isEthAddress
+        ? token.address.toLowerCase() === address.toLowerCase()
+        : token.address === address
     );
 
     if (existingToken) {
@@ -32,8 +46,9 @@ export async function GET(
         chainName: chain.name,
         supported: TOKENS.some(
           (t) =>
-            t.address.toLowerCase() === address.toLowerCase() &&
-            t.chainId === chain.id
+            (isEthAddress
+              ? t.address.toLowerCase() === address.toLowerCase()
+              : t.address === address) && t.chainId === chain.id
         ),
       }));
 
@@ -51,24 +66,152 @@ export async function GET(
       });
     }
 
-    // For demo purposes, simulate token lookup for unknown addresses
-    // In a real implementation, you would query external APIs like:
-    // - Ethereum: Etherscan API, Moralis, or direct contract call
-    // - Polygon: PolygonScan API
-    // - BSC: BscScan API
-    
-    // Simulate a successful token lookup
-    if (address.toLowerCase() === "0x1f9840a85d5af5bf1d1762f925bdaddc4201f984") {
-      // Uniswap token example
+    // Try to fetch token data from 1inch API for EVM chains
+    if (isEthAddress) {
+      try {
+        // Try Ethereum first
+        const ethResponse = await fetch(
+          `${ONEINCH_BASE_URL}/token/v1.3/1/custom/${address}`,
+          {
+            headers: {
+              Authorization: `Bearer ${ONEINCH_API_KEY}`,
+            },
+          }
+        );
+
+        if (ethResponse.ok) {
+          const ethData = await ethResponse.json();
+          const result: TokenSearchResult = {
+            address: ethData.address,
+            symbol: ethData.symbol,
+            name: ethData.name,
+            decimals: ethData.decimals,
+            chainCompatibility: [
+              { chainId: 1, chainName: "Ethereum", supported: true },
+              { chainId: 137, chainName: "Polygon", supported: false },
+              { chainId: 56, chainName: "BNB Smart Chain", supported: false },
+              { chainId: 101, chainName: "Solana", supported: false },
+            ],
+          };
+
+          return NextResponse.json({
+            success: true,
+            token: result,
+          });
+        }
+
+        // Try Polygon if Ethereum fails
+        const polygonResponse = await fetch(
+          `${ONEINCH_BASE_URL}/token/v1.3/137/custom/${address}`,
+          {
+            headers: {
+              Authorization: `Bearer ${ONEINCH_API_KEY}`,
+            },
+          }
+        );
+
+        if (polygonResponse.ok) {
+          const polygonData = await polygonResponse.json();
+          const result: TokenSearchResult = {
+            address: polygonData.address,
+            symbol: polygonData.symbol,
+            name: polygonData.name,
+            decimals: polygonData.decimals,
+            chainCompatibility: [
+              { chainId: 1, chainName: "Ethereum", supported: false },
+              { chainId: 137, chainName: "Polygon", supported: true },
+              { chainId: 56, chainName: "BNB Smart Chain", supported: false },
+              { chainId: 101, chainName: "Solana", supported: false },
+            ],
+          };
+
+          return NextResponse.json({
+            success: true,
+            token: result,
+          });
+        }
+
+        // Try BSC if Polygon fails
+        const bscResponse = await fetch(
+          `${ONEINCH_BASE_URL}/token/v1.3/56/custom/${address}`,
+          {
+            headers: {
+              Authorization: `Bearer ${ONEINCH_API_KEY}`,
+            },
+          }
+        );
+
+        if (bscResponse.ok) {
+          const bscData = await bscResponse.json();
+          const result: TokenSearchResult = {
+            address: bscData.address,
+            symbol: bscData.symbol,
+            name: bscData.name,
+            decimals: bscData.decimals,
+            chainCompatibility: [
+              { chainId: 1, chainName: "Ethereum", supported: false },
+              { chainId: 137, chainName: "Polygon", supported: false },
+              { chainId: 56, chainName: "BNB Smart Chain", supported: true },
+              { chainId: 101, chainName: "Solana", supported: false },
+            ],
+          };
+
+          return NextResponse.json({
+            success: true,
+            token: result,
+          });
+        }
+
+        // Try Base if BSC fails
+        const baseResponse = await fetch(
+          `${ONEINCH_BASE_URL}/token/v1.3/8453/custom/${address}`,
+          {
+            headers: {
+              Authorization: `Bearer ${ONEINCH_API_KEY}`,
+            },
+          }
+        );
+
+        if (baseResponse.ok) {
+          const baseData = await baseResponse.json();
+          const result: TokenSearchResult = {
+            address: baseData.address,
+            symbol: baseData.symbol,
+            name: baseData.name,
+            decimals: baseData.decimals,
+            chainCompatibility: [
+              { chainId: 1, chainName: "Ethereum", supported: false },
+              { chainId: 137, chainName: "Polygon", supported: false },
+              { chainId: 56, chainName: "BNB Smart Chain", supported: false },
+              { chainId: 101, chainName: "Solana", supported: false },
+              { chainId: 8453, chainName: "Base", supported: true },
+            ],
+          };
+
+          return NextResponse.json({
+            success: true,
+            token: result,
+          });
+        }
+      } catch (error) {
+        console.error("1inch API error:", error);
+      }
+    }
+
+    // For Solana tokens, we'll use a fallback approach since 1inch doesn't support Solana
+    if (isSolanaAddress) {
+      // For now, return a generic Solana token response
+      // In a real implementation, you would integrate with Solana RPC or Jupiter API
       const result: TokenSearchResult = {
-        address: "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984",
-        symbol: "UNI",
-        name: "Uniswap",
-        decimals: 18,
+        address: address,
+        symbol: "UNKNOWN",
+        name: "Unknown Solana Token",
+        decimals: 9, // Default for most Solana tokens
         chainCompatibility: [
-          { chainId: 1, chainName: "Ethereum", supported: true },
-          { chainId: 137, chainName: "Polygon", supported: true },
+          { chainId: 1, chainName: "Ethereum", supported: false },
+          { chainId: 137, chainName: "Polygon", supported: false },
           { chainId: 56, chainName: "BNB Smart Chain", supported: false },
+          { chainId: 101, chainName: "Solana", supported: true },
         ],
       };
 

@@ -91,6 +91,8 @@ export interface CreateInvestmentFormData {
   minSlippage?: number;
   deadline?: number; // minutes
   stopAfterSwaps?: number;
+  // Wallet and execution data
+  walletAddress?: string; // User's wallet address for automatic execution
 }
 
 export interface TokenSearchResult {

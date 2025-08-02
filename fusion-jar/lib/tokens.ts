@@ -5,6 +5,7 @@ export const SUPPORTED_CHAINS = [
   { id: 137, name: "Polygon", symbol: "MATIC" },
   { id: 56, name: "BNB Smart Chain", symbol: "BSC" },
   { id: 8453, name: "Base", symbol: "ETH" },
+  { id: 101, name: "Solana", symbol: "SOL" },
 ];
 
 export const TOKENS: TokenInfo[] = [
@@ -142,8 +143,7 @@ export const TOKENS: TokenInfo[] = [
     name: "Dai Stablecoin",
     decimals: 18,
     chainId: 8453,
-    logoURI:
-      "https://assets.coingecko.com/coins/images/9956/thumb/4943.png",
+    logoURI: "https://assets.coingecko.com/coins/images/9956/thumb/4943.png",
   },
   {
     address: "0x4200000000000000000000000000000000000006",
@@ -159,9 +159,75 @@ export const TOKENS: TokenInfo[] = [
     name: "Coinbase Wrapped Staked ETH",
     decimals: 18,
     chainId: 8453,
+    logoURI: "https://assets.coingecko.com/coins/images/27045/thumb/cbeth.png",
+  },
+
+  // Solana tokens
+  {
+    address: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    symbol: "USDC",
+    name: "USD Coin",
+    decimals: 6,
+    chainId: 101,
     logoURI:
-      "https://assets.coingecko.com/coins/images/27045/thumb/cbeth.png",
-  }
+      "https://assets.coingecko.com/coins/images/6319/thumb/USD_Coin_icon.png",
+  },
+  {
+    address: "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+    symbol: "USDT",
+    name: "Tether USD",
+    decimals: 6,
+    chainId: 101,
+    logoURI: "https://assets.coingecko.com/coins/images/325/thumb/Tether.png",
+  },
+  {
+    address: "So11111111111111111111111111111111111111112",
+    symbol: "SOL",
+    name: "Wrapped SOL",
+    decimals: 9,
+    chainId: 101,
+    logoURI: "https://assets.coingecko.com/coins/images/4128/thumb/solana.png",
+  },
+  {
+    address: "mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So",
+    symbol: "mSOL",
+    name: "Marinade Staked SOL",
+    decimals: 9,
+    chainId: 101,
+    logoURI: "https://assets.coingecko.com/coins/images/17751/thumb/msol.png",
+  },
+  {
+    address: "7dHbWXmci3dT8UFYWYZweBLXgycu7Y3iL6trKn1Y7ARj",
+    symbol: "stSOL",
+    name: "Lido Staked SOL",
+    decimals: 9,
+    chainId: 101,
+    logoURI: "https://assets.coingecko.com/coins/images/15051/thumb/stSOL.png",
+  },
+  {
+    address: "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
+    symbol: "BONK",
+    name: "Bonk",
+    decimals: 5,
+    chainId: 101,
+    logoURI: "https://assets.coingecko.com/coins/images/28600/thumb/bonk.jpg",
+  },
+  {
+    address: "7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr",
+    symbol: "POPCAT",
+    name: "Popcat",
+    decimals: 5,
+    chainId: 101,
+    logoURI: "https://assets.coingecko.com/coins/images/35407/thumb/popcat.png",
+  },
+  {
+    address: "ATEe3MqHCzy4dKMm9DgCvd2cYBKxMTCPPb1ZnLnmbonk",
+    symbol: "BONK",
+    name: "Bonk",
+    decimals: 5,
+    chainId: 101,
+    logoURI: "https://assets.coingecko.com/coins/images/28600/thumb/bonk.jpg",
+  },
 ];
 
 export const getTokensByChain = (chainId: number): TokenInfo[] => {
