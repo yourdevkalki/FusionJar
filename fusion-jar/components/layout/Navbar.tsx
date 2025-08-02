@@ -14,6 +14,11 @@ export function Navbar() {
 
   const isActive = (path: string) => pathname === path;
 
+  // Don't show navbar for non-authenticated users (landing page)
+  if (!authenticated) {
+    return null;
+  }
+
   return (
     <nav className="bg-background border-b border-gray-500">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

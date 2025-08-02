@@ -26,6 +26,14 @@
   --text-secondary: #94a1b2;
   --stroke: #2e2e2e;
 
+  /* Landing page specific variables */
+  --background-color: #0f0e17;
+  --primary-color: #7f5af0;
+  --success-color: #2cb67d;
+  --highlight-color: #ffd466;
+  --card-background: #16161a;
+  --border-color: #2e2e33;
+
   /* Invest page specific variables */
   --on-surface: #a294c7;
   --on-surface-strong: #fffffe;
@@ -72,4 +80,62 @@ body {
 
 .tab-inactive {
   @apply text-[var(--on-surface)] border-transparent hover:text-white hover:border-gray-300;
+}
+
+/* Landing page animations */
+.hover-glow {
+  transition: box-shadow 0.3s ease-in-out;
+}
+
+.hover-glow:hover {
+  box-shadow: 0 0 15px 5px rgba(127, 90, 240, 0.4);
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+@keyframes glow {
+  0%,
+  100% {
+    box-shadow: 0 0 20px 5px rgba(127, 90, 240, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 30px 10px rgba(127, 90, 240, 0.6);
+  }
+}
+
+@keyframes orbit {
+  0% {
+    transform: rotate(0deg) translateX(35px) rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg) translateX(35px) rotate(-360deg);
+  }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-glow {
+  animation: glow 4s ease-in-out infinite;
+}
+
+.animate-orbit-1 {
+  animation: orbit 10s linear infinite;
+}
+
+.animate-orbit-2 {
+  animation: orbit 12s linear infinite reverse;
+}
+
+.animate-orbit-3 {
+  animation: orbit 15s linear infinite;
 }
