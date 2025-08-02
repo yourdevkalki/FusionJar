@@ -6,7 +6,7 @@ export function HomePage() {
     <div className="min-h-screen bg-background">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Hero Section */}
-        {/* <div className="text-center mb-12">
+        <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-white sm:text-6xl mb-4">
             Automate DeFi micro-investments.
           </h1>
@@ -20,7 +20,7 @@ export function HomePage() {
           <button className="bg-purple text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-purple-dark transition-colors">
             Start Investing
           </button>
-        </div> */}
+        </div>
 
         {/* Data Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">

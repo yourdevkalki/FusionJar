@@ -8,9 +8,20 @@ import { toast } from "react-hot-toast";
 interface PortfolioData {
   totalValue: number;
   totalValueUsd: number;
+  totalInvestment: number;
+  valueAcrossChains: number;
   dayChange: number;
   dayChangePercent: number;
   tokens: Array<{
+    address: string;
+    symbol: string;
+    name: string;
+    balance: string;
+    balanceUsd: number;
+    price: number;
+    chainId: number;
+  }>;
+  chainTokens: Array<{
     address: string;
     symbol: string;
     name: string;
@@ -327,17 +338,89 @@ export function PortfolioPage() {
 
             {/* Summary Cards */}
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-              <div className="lg:col-span-2 rounded-2xl bg-gray-800 p-6 shadow-lg">
+              <div className="rounded-2xl bg-gray-800 p-6 shadow-lg">
                 <h3 className="mb-2 text-lg font-medium text-gray-500">
                   Total Invested (Lifetime)
                 </h3>
-                <p className="text-4xl font-bold text-white">$1,250.00</p>
+                <p className="text-4xl font-bold text-white">
+                  {loading ? (
+                    <span className="text-gray-400">Loading...</span>
+                  ) : (
+                    formatCurrency(portfolioData?.totalInvestment || 0)
+                  )}
+                </p>
               </div>
-              <div className="lg:col-span-2 rounded-2xl bg-gray-800 p-6 shadow-lg">
+              <div className="rounded-2xl bg-gray-800 p-6 shadow-lg">
                 <h3 className="mb-2 text-lg font-medium text-gray-500">
                   Value Across Chains
                 </h3>
-                <p className="text-4xl font-bold text-white">$1,385.50</p>
+                <p className="text-4xl font-bold text-white">
+                  {loading ? (
+                    <span className="text-gray-400">Loading...</span>
+                  ) : (
+                    formatCurrency(portfolioData?.valueAcrossChains || 0)
+                  )}
+                </p>
+              </div>
+              <div className="rounded-2xl bg-gray-800 p-6 shadow-lg">
+                <h3 className="mb-2 text-lg font-medium text-gray-500">
+                  Total Performance
+                </h3>
+                <p
+                  className={`text-4xl font-bold ${
+                    loading
+                      ? "text-gray-400"
+                      : (portfolioData?.valueAcrossChains || 0) >=
+                        (portfolioData?.totalInvestment || 0)
+                      ? "text-green-400"
+                      : "text-red-400"
+                  }`}
+                >
+                  {loading ? (
+                    <span>Loading...</span>
+                  ) : (
+                    formatCurrency(
+                      (portfolioData?.valueAcrossChains || 0) -
+                        (portfolioData?.totalInvestment || 0)
+                    )
+                  )}
+                </p>
+                <p
+                  className={`text-sm ${
+                    loading
+                      ? "text-gray-500"
+                      : (portfolioData?.valueAcrossChains || 0) >=
+                        (portfolioData?.totalInvestment || 0)
+                      ? "text-green-400"
+                      : "text-red-400"
+                  }`}
+                >
+                  {loading
+                    ? ""
+                    : portfolioData?.totalInvestment &&
+                      portfolioData.totalInvestment > 0
+                    ? `${(
+                        ((portfolioData.valueAcrossChains -
+                          portfolioData.totalInvestment) /
+                          portfolioData.totalInvestment) *
+                        100
+                      ).toFixed(2)}%`
+                    : "0.00%"}
+                </p>
+              </div>
+              <div className="rounded-2xl bg-gray-800 p-6 shadow-lg">
+                <h3 className="mb-2 text-lg font-medium text-gray-500">
+                  Active Jars
+                </h3>
+                <p className="text-4xl font-bold text-white">
+                  {jarsLoading ? (
+                    <span className="text-gray-400">Loading...</span>
+                  ) : (
+                    investmentIntents.filter(
+                      (intent) => intent.status === "active"
+                    ).length
+                  )}
+                </p>
               </div>
             </div>
 
@@ -379,6 +462,94 @@ export function PortfolioPage() {
                 <canvas ref={chartRef}></canvas>
               </div>
             </div>
+
+            {/* Tokens Across Chains */}
+            {portfolioData?.chainTokens &&
+              portfolioData.chainTokens.length > 0 && (
+                <div className="rounded-2xl bg-gray-800 p-6 shadow-lg">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+                    <div>
+                      <h3 className="text-2xl font-bold tracking-tight text-white">
+                        Tokens Across Chains
+                      </h3>
+                      <p className="text-gray-500">
+                        Your holdings from investment executions
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                      <thead className="border-b border-gray-700">
+                        <tr>
+                          <th className="px-4 py-3 text-sm font-medium text-gray-500">
+                            Token
+                          </th>
+                          <th className="px-4 py-3 text-sm font-medium text-gray-500">
+                            Chain
+                          </th>
+                          <th className="px-4 py-3 text-sm font-medium text-gray-500">
+                            Balance
+                          </th>
+                          <th className="px-4 py-3 text-sm font-medium text-gray-500">
+                            Price
+                          </th>
+                          <th className="px-4 py-3 text-sm font-medium text-gray-500">
+                            Value (USD)
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {portfolioData.chainTokens.map((token, index) => (
+                          <tr
+                            key={index}
+                            className="border-b border-gray-700 transition-colors hover:bg-background"
+                          >
+                            <td className="px-4 py-4 align-middle">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center text-xs font-mono text-white">
+                                  {token.symbol?.slice(0, 2) || "T"}
+                                </div>
+                                <div>
+                                  <div className="font-medium text-white">
+                                    {token.symbol}
+                                  </div>
+                                  <div className="text-xs text-gray-400">
+                                    {token.name}
+                                  </div>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-4 py-4 align-middle">
+                              <span className="inline-flex items-center rounded-full bg-blue-500/20 px-2 py-1 text-xs font-medium text-blue-400">
+                                {getChainName(token.chainId)}
+                              </span>
+                            </td>
+                            <td className="px-4 py-4 align-middle text-white">
+                              {parseFloat(token.balance) > 0 ? (
+                                <span>
+                                  {parseFloat(token.balance).toFixed(6)}{" "}
+                                  {token.symbol}
+                                </span>
+                              ) : (
+                                <span className="text-gray-400">
+                                  0 {token.symbol}
+                                </span>
+                              )}
+                            </td>
+                            <td className="px-4 py-4 align-middle text-white">
+                              {formatCurrency(token.price)}
+                            </td>
+                            <td className="px-4 py-4 align-middle text-white font-semibold">
+                              {formatCurrency(token.balanceUsd)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
           </div>
 
           {/* My Jars Table */}
