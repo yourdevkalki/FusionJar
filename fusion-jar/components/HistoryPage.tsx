@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { HistoryTransaction, HistoryData } from "@/types/investment";
+import { HistoryData, InvestmentExecution } from "@/types/investment";
 import { SUPPORTED_CHAINS } from "@/lib/tokens";
 
 export function HistoryPage() {
@@ -16,7 +16,7 @@ export function HistoryPage() {
     if (address) {
       fetchHistory();
     }
-  }, [address, selectedChain]);
+  }, [address, selectedChain, selectedStatus]);
 
   const fetchHistory = async () => {
     if (!address) return;
@@ -27,6 +27,9 @@ export function HistoryPage() {
       if (selectedChain) {
         queryParams.append("chainId", selectedChain.toString());
       }
+      if (selectedStatus !== "all") {
+        queryParams.append("status", selectedStatus);
+      }
       
       const response = await fetch(`/api/history/${address}?${queryParams}`);
       const result = await response.json();
@@ -35,7 +38,7 @@ export function HistoryPage() {
         setHistoryData(result.data);
       }
     } catch (error) {
-      console.error("Failed to fetch history:", error);
+      console.error("Failed to fetch investment execution history:", error);
     } finally {
       setLoading(false);
     }
@@ -46,14 +49,12 @@ export function HistoryPage() {
     return chain?.name || `Chain ${chainId}`;
   };
 
-  const formatAmount = (amount?: string, decimals: number = 18, symbol: string = "") => {
-    if (!amount || amount === "0") return "0";
-    const value = parseFloat(amount) / Math.pow(10, decimals);
-    return `${value.toFixed(4)} ${symbol}`;
+  const formatUSDAmount = (amount: number) => {
+    return `$${amount.toFixed(2)}`;
   };
 
   const formatTimestamp = (timestamp: string) => {
-    const date = new Date(parseInt(timestamp) * 1000);
+    const date = new Date(timestamp);
     return date.toLocaleString("en-US", {
       year: "numeric",
       month: "2-digit", 
@@ -65,22 +66,48 @@ export function HistoryPage() {
     });
   };
 
-  const getStatusDisplay = (status: "1" | "0") => {
-    return status === "1" ? {
-      text: "Executed",
-      style: "bg-[var(--success)]/10 text-[var(--success)]"
-    } : {
-      text: "Failed", 
-      style: "bg-red-500/10 text-red-500"
-    };
+  const getStatusDisplay = (status: string) => {
+    switch (status) {
+      case "fulfilled":
+        return {
+          text: "Fulfilled",
+          style: "bg-[var(--success)]/10 text-[var(--success)]"
+        };
+      case "pending":
+        return {
+          text: "Pending",
+          style: "bg-yellow-500/10 text-yellow-500"
+        };
+      case "failed":
+        return {
+          text: "Failed",
+          style: "bg-red-500/10 text-red-500"
+        };
+      case "skipped":
+        return {
+          text: "Skipped",
+          style: "bg-gray-500/10 text-gray-500"
+        };
+      default:
+        return {
+          text: status,
+          style: "bg-gray-500/10 text-gray-500"
+        };
+    }
   };
 
-  const filteredTransactions = (historyData?.transactions || []).filter(tx => {
-    if (selectedStatus === "all") return true;
-    if (selectedStatus === "executed") return tx.status === "1";
-    if (selectedStatus === "failed") return tx.status === "0";
-    return true;
-  });
+  const getTokenSymbol = (tokenAddress: string) => {
+    // Common token symbols mapping
+    const tokenSymbols: Record<string, string> = {
+      "0xdAC17F958D2ee523a2206206994597C13D831ec7": "USDT",
+      "0xA0b86a33E6441b8C4C8C8C8C8C8C8C8C8C8C8C8C": "USDC",
+      "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599": "WBTC",
+      "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2": "WETH",
+      "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984": "UNI",
+      "0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0": "MATIC",
+    };
+    return tokenSymbols[tokenAddress] || "Unknown";
+  };
   return (
     <div className="min-h-screen bg-background">
       <main className="flex flex-1 flex-col items-center px-4 py-8 sm:px-6 lg:px-8">
@@ -96,8 +123,10 @@ export function HistoryPage() {
                 onChange={(e) => setSelectedStatus(e.target.value)}
               >
                 <option value="all">All Status</option>
-                <option value="executed">Executed</option>
+                <option value="fulfilled">Fulfilled</option>
+                <option value="pending">Pending</option>
                 <option value="failed">Failed</option>
+                <option value="skipped">Skipped</option>
               </select>
               
               <select 
@@ -130,19 +159,25 @@ export function HistoryPage() {
                           className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-6"
                           scope="col"
                         >
-                          Timestamp
+                          Executed At
                         </th>
                         <th
                           className="px-3 py-3.5 text-left text-sm font-semibold"
                           scope="col"
                         >
-                          Amount
+                          Investment
                         </th>
                         <th
                           className="px-3 py-3.5 text-left text-sm font-semibold"
                           scope="col"
                         >
-                          From → To Chain
+                          From → To
+                        </th>
+                        <th
+                          className="px-3 py-3.5 text-left text-sm font-semibold"
+                          scope="col"
+                        >
+                          Fee Paid
                         </th>
                         <th
                           className="px-3 py-3.5 text-left text-sm font-semibold"
@@ -161,49 +196,54 @@ export function HistoryPage() {
                     <tbody className="divide-y divide-[var(--stroke)] bg-[var(--surface)]">
                       {loading ? (
                         <tr>
-                          <td colSpan={5} className="text-center py-8">
+                          <td colSpan={6} className="text-center py-8">
                             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--primary)] mx-auto"></div>
-                            <p className="mt-2 text-[var(--text-secondary)]">Loading transaction history...</p>
+                            <p className="mt-2 text-[var(--text-secondary)]">Loading investment execution history...</p>
                           </td>
                         </tr>
                       ) : !address ? (
                         <tr>
-                          <td colSpan={5} className="text-center py-8 text-[var(--text-secondary)]">
-                            Please connect your wallet to view transaction history
+                          <td colSpan={6} className="text-center py-8 text-[var(--text-secondary)]">
+                            Please connect your wallet to view investment execution history
                           </td>
                         </tr>
-                      ) : filteredTransactions.length === 0 ? (
+                      ) : !historyData?.executions || historyData.executions.length === 0 ? (
                         <tr>
-                          <td colSpan={5} className="text-center py-8 text-[var(--text-secondary)]">
-                            No transactions found
+                          <td colSpan={6} className="text-center py-8 text-[var(--text-secondary)]">
+                            No investment executions found
                           </td>
                         </tr>
                       ) : (
-                        filteredTransactions.map((tx, index) => {
-                          const statusInfo = getStatusDisplay(tx.status);
+                        historyData.executions.map((execution, index) => {
+                          const statusInfo = getStatusDisplay(execution.status);
                           return (
-                            <tr key={tx.txHash || index}>
+                            <tr key={execution.id || index}>
                               <td className="whitespace-nowrap py-5 pl-4 pr-3 text-sm text-[var(--text-secondary)] sm:pl-6">
-                                {formatTimestamp(tx.timeStamp)}
+                                {execution.executed_at 
+                                  ? formatTimestamp(execution.executed_at)
+                                  : formatTimestamp(execution.created_at)
+                                }
                               </td>
                               <td className="whitespace-nowrap px-3 py-5 text-sm font-medium">
-                                {tx.srcToken && tx.srcAmount 
-                                  ? formatAmount(tx.srcAmount, tx.srcToken.decimals, tx.srcToken.symbol)
-                                  : formatAmount(tx.value, 18, "ETH")
-                                }
-                                {tx.dstToken && tx.dstAmount && (
+                                {formatUSDAmount(execution.amount_usd)}
+                                {execution.actual_amount_in && execution.actual_amount_out && (
                                   <div className="text-xs text-[var(--text-secondary)]">
-                                    → {formatAmount(tx.dstAmount, tx.dstToken.decimals, tx.dstToken.symbol)}
+                                    {execution.actual_amount_in} → {execution.actual_amount_out}
                                   </div>
                                 )}
                               </td>
                               <td className="whitespace-nowrap px-3 py-5 text-sm text-[var(--text-secondary)]">
-                                {getChainName(tx.chainId)}
-                                {tx.srcToken && tx.dstToken && (
-                                  <div className="text-xs">
-                                    {tx.srcToken.symbol} → {tx.dstToken.symbol}
+                                <div className="space-y-1">
+                                  <div>
+                                    {getChainName(execution.source_chain)} → {getChainName(execution.target_chain)}
                                   </div>
-                                )}
+                                  <div className="text-xs">
+                                    {getTokenSymbol(execution.source_token)} → {getTokenSymbol(execution.target_token)}
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="whitespace-nowrap px-3 py-5 text-sm text-[var(--text-secondary)]">
+                                {execution.fee_paid ? `$${parseFloat(execution.fee_paid).toFixed(4)}` : "N/A"}
                               </td>
                               <td className="whitespace-nowrap px-3 py-5 text-sm">
                                 <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${statusInfo.style}`}>
@@ -218,17 +258,21 @@ export function HistoryPage() {
                                 </span>
                               </td>
                               <td className="relative whitespace-nowrap py-5 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                                <a
-                                  className="flex items-center justify-end gap-1 text-[var(--primary)] transition-colors hover:text-[var(--primary)]/80"
-                                  href={`https://etherscan.io/tx/${tx.txHash}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                >
-                                  View TX{" "}
-                                  <span className="material-icons text-base">
-                                    open_in_new
-                                  </span>
-                                </a>
+                                {execution.transaction_hash ? (
+                                  <a
+                                    className="flex items-center justify-end gap-1 text-[var(--primary)] transition-colors hover:text-[var(--primary)]/80"
+                                    href={`https://etherscan.io/tx/${execution.transaction_hash}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                  >
+                                    View TX{" "}
+                                    <span className="material-icons text-base">
+                                      open_in_new
+                                    </span>
+                                  </a>
+                                ) : (
+                                  <span className="text-[var(--text-secondary)]">No TX</span>
+                                )}
                               </td>
                             </tr>
                           );

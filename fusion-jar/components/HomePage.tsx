@@ -384,7 +384,7 @@ export function HomePage() {
 
                 return (
                   <div
-                    key={index}
+                    key={investment.id || `investment-${index}-${investment.created_at}`}
                     className="bg-gray-800 rounded-lg p-4 flex items-center justify-between hover:bg-gray-750 transition-colors"
                   >
                     <div className="flex items-center space-x-4">

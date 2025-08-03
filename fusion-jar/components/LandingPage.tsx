@@ -25,7 +25,14 @@ export function LandingPage() {
           <div className="px-4 md:px-10 lg:px-20 xl:px-40 flex flex-1 justify-center py-5">
             <div className="layout-content-container flex flex-col max-w-7xl flex-1">
               <header className="flex justify-between items-center py-6 px-4">
-                <div className="text-2xl font-bold">Fusion Jar</div>
+                <div className="flex items-center space-x-3">
+                  <img
+                    src="/fusionjarlogo.svg"
+                    alt="Fusion Jar Logo"
+                    className="w-8 h-8 object-contain"
+                  />
+                  <div className="text-2xl font-bold">Fusion Jar</div>
+                </div>
                 <nav className="hidden md:flex items-center gap-8">
                   <a
                     className="text-base text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"

@@ -26,9 +26,9 @@ export function Navbar() {
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-3">
             <img
-              src="/logo.png"
+              src="/fusionjarlogo.svg"
               alt="Fusion Jar Logo"
-              className="w-15 h-15 object-contain"
+              className="w-12 h-12 object-contain"
             />
             <span className="text-xl font-bold text-white">Fusion Jar</span>
           </Link>

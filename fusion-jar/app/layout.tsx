@@ -1,12 +1,9 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
 import { PrivyProvider } from "@/components/providers/PrivyProvider";
 import { WalletProvider } from "@/components/providers/WalletProvider";
 import { Navbar } from "@/components/layout/Navbar";
 import { Toaster } from "react-hot-toast";
-
-const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Fusion Jar",
@@ -20,7 +17,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body className="font-sans">
         <PrivyProvider>
           <WalletProvider>
             <Navbar />

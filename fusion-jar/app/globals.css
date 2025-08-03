@@ -51,7 +51,7 @@
   --color-green: var(--green);
   --color-red: var(--red);
   --color-orange: var(--orange);
-  --font-sans: "Inter", system-ui, sans-serif;
+  --font-sans: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 }
 
 body {

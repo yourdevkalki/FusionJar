@@ -136,8 +136,12 @@ export interface HistoryTransaction {
 }
 
 export interface HistoryData {
-  transactions: HistoryTransaction[];
-  total: number;
-  page: number;
-  limit: number;
+  executions: InvestmentExecution[];
+  recentInvestments: InvestmentExecution[];
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
 }

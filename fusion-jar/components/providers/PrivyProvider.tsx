@@ -1,23 +1,25 @@
 "use client";
 
 import { PrivyProvider as PrivyProviderBase } from "@privy-io/react-auth";
+import { useMemo } from "react";
+import dynamic from "next/dynamic";
 
-export function PrivyProvider({ children }: { children: React.ReactNode }) {
+function PrivyProviderInner({ children }: { children: React.ReactNode }) {
   // Get the app ID from environment variables
   const appId = process.env.NEXT_PUBLIC_PRIVY_APP_ID || 'demo-app-id';
   
-  // Minimal configuration to avoid errors
-  const config = {
-    loginMethods: ["email", "sms", "wallet"] as const,
+  // Memoize configuration to prevent re-renders that might cause key issues
+  const config = useMemo(() => ({
+    loginMethods: ["email", "sms", "wallet"],
     appearance: {
-      theme: "light" as const,
+      theme: "light",
       accentColor: "#676FFF",
       showWalletLoginFirst: false,
     },
     embeddedWallets: {
-      createOnLogin: "users-without-wallets" as const,
+      createOnLogin: "users-without-wallets",
     },
-  };
+  }), []);
 
   return (
     <PrivyProviderBase appId={appId} config={config}>
@@ -25,3 +27,9 @@ export function PrivyProvider({ children }: { children: React.ReactNode }) {
     </PrivyProviderBase>
   );
 }
+
+// Dynamically import to prevent SSR issues
+export const PrivyProvider = dynamic(() => Promise.resolve(PrivyProviderInner), {
+  ssr: false,
+  loading: () => <div>Loading...</div>,
+});

@@ -212,6 +212,14 @@ export default function FinalAuthorization({
         return false;
       }
       const signer = await provider.getSigner();
+      
+      // Validate token address
+      if (!jarData.tokenAddress || !ethers.isAddress(jarData.tokenAddress)) {
+        setError(`Invalid token address: ${jarData.tokenAddress}`);
+        return false;
+      }
+      
+      console.log(`🔍 Creating token contract for approval check: ${jarData.tokenAddress}`);
       const tokenContract = new ethers.Contract(
         jarData.tokenAddress,
         ERC20_ABI,
@@ -330,6 +338,14 @@ export default function FinalAuthorization({
         return false;
       }
       const signer = await provider.getSigner();
+      
+      // Validate token address
+      if (!jarData.tokenAddress || !ethers.isAddress(jarData.tokenAddress)) {
+        setError(`Invalid token address: ${jarData.tokenAddress}`);
+        return false;
+      }
+      
+      console.log(`🔍 Creating token contract for: ${jarData.tokenAddress}`);
       const tokenContract = new ethers.Contract(
         jarData.tokenAddress,
         ERC20_ABI,
@@ -344,11 +360,29 @@ export default function FinalAuthorization({
         return false;
       }
 
-      // Get token info for better UX
-      const [tokenSymbol, tokenName] = await Promise.all([
-        tokenContract.symbol(),
-        tokenContract.name(),
-      ]);
+      // Get token info for better UX with fallbacks
+      let tokenSymbol = jarData.tokenSymbol || "Token";
+      let tokenName = "Token";
+      
+      try {
+        // Try to get token info, but provide fallbacks if it fails
+        const tokenInfo = await Promise.allSettled([
+          tokenContract.symbol(),
+          tokenContract.name(),
+        ]);
+        
+        if (tokenInfo[0].status === "fulfilled" && tokenInfo[0].value) {
+          tokenSymbol = tokenInfo[0].value;
+        }
+        if (tokenInfo[1].status === "fulfilled" && tokenInfo[1].value) {
+          tokenName = tokenInfo[1].value;
+        }
+        
+        console.log(`✅ Token info retrieved: ${tokenSymbol} (${tokenName})`);
+      } catch (error) {
+        console.warn("⚠️ Could not retrieve token info, using fallbacks:", error);
+        // Continue with fallback values
+      }
 
       toast.loading(`Approving ${tokenSymbol} for automated investments...`);
 
