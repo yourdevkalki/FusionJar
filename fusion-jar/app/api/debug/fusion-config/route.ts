@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // Check environment variables
     const config = {
@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         error: "Failed to check configuration",
-        details: error.message,
+        details: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 }
     );

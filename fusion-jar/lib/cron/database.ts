@@ -129,7 +129,7 @@ export async function updateIntentNextExecution(
 
     // Calculate next execution time based on frequency
     const now = new Date();
-    let nextExecution = new Date(now);
+    const nextExecution = new Date(now);
 
     switch (frequency.toLowerCase()) {
       case "daily":

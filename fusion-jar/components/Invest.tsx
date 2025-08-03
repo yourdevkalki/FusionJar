@@ -3,11 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { SUPPORTED_CHAINS, TOKENS, getTokensByChain } from "@/lib/tokens";
-import {
-  CreateInvestmentFormData,
-  TokenSearchResult,
-} from "@/types/investment";
+import { CreateInvestmentFormData } from "@/types/investment";
+import { TokenSearchResult } from "@/types/investment";
 import FinalAuthorization from "./features/PrivySignatureRequest";
 import { ethers } from "ethers";
 
@@ -31,16 +28,18 @@ const FUSION_CONTRACTS = {
 export default function Invest() {
   const { address, authenticatedFetch, primaryWallet } = useAuth();
 
-  const [activeTab, setActiveTab] = useState("search-token");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [tokenSearchResult, setTokenSearchResult] =
     useState<TokenSearchResult | null>(null);
-  const [quote, setQuote] = useState<any>(null);
+  const [quote] = useState<{
+    toAmount: string;
+    fromAmount: string;
+    estimatedGas: string;
+  } | null>(null);
   const [showFinalAuthorization, setShowFinalAuthorization] = useState(false);
   const [jarAuthorized, setJarAuthorized] = useState(false);
-  const [isCheckingApproval, setIsCheckingApproval] = useState(false);
-  const [isApproving, setIsApproving] = useState(false);
+
   const [approvalStatus, setApprovalStatus] = useState<{
     [key: string]: boolean;
   }>({});
@@ -100,142 +99,142 @@ export default function Invest() {
   };
 
   // Check if token approval is needed
-  const checkTokenApproval = async (tokenAddress: string, chainId: number) => {
-    if (!primaryWallet?.address || !primaryWallet?.provider) {
-      toast.error("Wallet not connected");
-      return false;
-    }
+  // const checkTokenApproval = async (tokenAddress: string, chainId: number) => {
+  //   if (!primaryWallet?.address || !primaryWallet?.provider) {
+  //     toast.error("Wallet not connected");
+  //     return false;
+  //   }
 
-    const spenderAddress =
-      FUSION_CONTRACTS[chainId as keyof typeof FUSION_CONTRACTS];
-    if (!spenderAddress) {
-      toast.error("Fusion contract not found for this chain");
-      return false;
-    }
+  //   const spenderAddress =
+  //     FUSION_CONTRACTS[chainId as keyof typeof FUSION_CONTRACTS];
+  //   if (!spenderAddress) {
+  //     toast.error("Fusion contract not found for this chain");
+  //     return false;
+  //   }
 
-    try {
-      setIsCheckingApproval(true);
+  //   try {
+  //     setIsCheckingApproval(true);
 
-      const provider = new ethers.BrowserProvider(primaryWallet.walletClient);
-      const signer = await provider.getSigner();
-      const tokenContract = new ethers.Contract(
-        tokenAddress,
-        ERC20_ABI,
-        signer
-      );
+  //     const provider = new ethers.BrowserProvider(primaryWallet.walletClient);
+  //     const signer = await provider.getSigner();
+  //     const tokenContract = new ethers.Contract(
+  //       tokenAddress,
+  //       ERC20_ABI,
+  //       signer
+  //     );
 
-      const userAddress = await signer.getAddress();
-      const allowance = await tokenContract.allowance(
-        userAddress,
-        spenderAddress
-      );
+  //     const userAddress = await signer.getAddress();
+  //     const allowance = await tokenContract.allowance(
+  //       userAddress,
+  //       spenderAddress
+  //     );
 
-      // For USD investments, we need to convert to token amount
-      // Since we're investing USD, we'll use a reasonable amount for approval
-      const approvalAmount = ethers.parseUnits("1000000", 18); // 1M tokens
+  //     // For USD investments, we need to convert to token amount
+  //     // Since we're investing USD, we'll use a reasonable amount for approval
+  //     const approvalAmount = ethers.parseUnits("1000000", 18); // 1M tokens
 
-      const isApproved = allowance >= approvalAmount;
+  //     const isApproved = allowance >= approvalAmount;
 
-      // Store approval status
-      const approvalKey = `${tokenAddress}-${chainId}`;
-      setApprovalStatus((prev) => ({
-        ...prev,
-        [approvalKey]: isApproved,
-      }));
+  //     // Store approval status
+  //     const approvalKey = `${tokenAddress}-${chainId}`;
+  //     setApprovalStatus((prev) => ({
+  //       ...prev,
+  //       [approvalKey]: isApproved,
+  //     }));
 
-      return isApproved;
-    } catch (error) {
-      console.error("Error checking token approval:", error);
-      toast.error("Failed to check token approval");
-      return false;
-    } finally {
-      setIsCheckingApproval(false);
-    }
-  };
+  //     return isApproved;
+  //   } catch (error) {
+  //     console.error("Error checking token approval:", error);
+  //     toast.error("Failed to check token approval");
+  //     return false;
+  //   } finally {
+  //     setIsCheckingApproval(false);
+  //   }
+  // };
 
   // Request token approval
-  const requestTokenApproval = async (
-    tokenAddress: string,
-    chainId: number
-  ) => {
-    if (!primaryWallet?.address || !primaryWallet?.provider) {
-      toast.error("Wallet not connected");
-      return false;
-    }
+  // const requestTokenApproval = async (
+  //   tokenAddress: string,
+  //   chainId: number
+  // ) => {
+  //   if (!primaryWallet?.address || !primaryWallet?.provider) {
+  //     toast.error("Wallet not connected");
+  //     return false;
+  //   }
 
-    const spenderAddress =
-      FUSION_CONTRACTS[chainId as keyof typeof FUSION_CONTRACTS];
-    if (!spenderAddress) {
-      toast.error("Fusion contract not found for this chain");
-      return false;
-    }
+  //   const spenderAddress =
+  //     FUSION_CONTRACTS[chainId as keyof typeof FUSION_CONTRACTS];
+  //   if (!spenderAddress) {
+  //     toast.error("Fusion contract not found for this chain");
+  //     return false;
+  //   }
 
-    try {
-      setIsApproving(true);
+  //   try {
+  //     setIsApproving(true);
 
-      const provider = new ethers.BrowserProvider(primaryWallet.walletClient);
-      const signer = await provider.getSigner();
-      const tokenContract = new ethers.Contract(
-        tokenAddress,
-        ERC20_ABI,
-        signer
-      );
+  //     const provider = new ethers.BrowserProvider(primaryWallet.walletClient);
+  //     const signer = await provider.getSigner();
+  //     const tokenContract = new ethers.Contract(
+  //       tokenAddress,
+  //       ERC20_ABI,
+  //       signer
+  //     );
 
-      // Get token info for better UX
-      const [tokenSymbol, tokenName] = await Promise.all([
-        tokenContract.symbol(),
-        tokenContract.name(),
-      ]);
+  //     // Get token info for better UX
+  //     const [tokenSymbol, tokenName] = await Promise.all([
+  //       tokenContract.symbol(),
+  //       tokenAddress,
+  //     ]);
 
-      toast.loading(`Approving ${tokenSymbol} for automated investments...`);
+  //     toast.loading(`Approving ${tokenSymbol} for automated investments...`);
 
-      // Approve with maximum amount
-      const approveTx = await tokenContract.approve(
-        spenderAddress,
-        ethers.MaxUint256
-      );
+  //     // Approve with maximum amount
+  //     const approveTx = await tokenContract.approve(
+  //       spenderAddress,
+  //       ethers.MaxUint256
+  //     );
 
-      toast.loading("Waiting for approval confirmation...");
-      await approveTx.wait();
+  //     toast.loading("Waiting for approval confirmation...");
+  //     await approveTx.wait();
 
-      // Update approval status
-      const approvalKey = `${tokenAddress}-${chainId}`;
-      setApprovalStatus((prev) => ({
-        ...prev,
-        [approvalKey]: true,
-      }));
+  //     // Update approval status
+  //     const approvalKey = `${tokenAddress}-${chainId}`;
+  //     setApprovalStatus((prev) => ({
+  //       ...prev,
+  //       [approvalKey]: true,
+  //     }));
 
-      toast.success(`${tokenSymbol} approved successfully!`);
+  //     toast.success(`${tokenSymbol} approved successfully!`);
 
-      // Store approval locally for faster UX
-      localStorage.setItem(`approved-${tokenAddress}-${chainId}`, "true");
+  //     // Store approval locally for faster UX
+  //     localStorage.setItem(`approved-${tokenAddress}-${chainId}`, "true");
 
-      // Also save to approvalStatus state
-      const currentApprovalKey = `${tokenAddress}-${chainId}`;
-      const newApprovalStatus = {
-        ...approvalStatus,
-        [currentApprovalKey]: true,
-      };
-      setApprovalStatus(newApprovalStatus);
-      localStorage.setItem("approvalStatus", JSON.stringify(newApprovalStatus));
+  //     // Also save to approvalStatus state
+  //     const currentApprovalKey = `${tokenAddress}-${chainId}`;
+  //     const newApprovalStatus = {
+  //       ...approvalStatus,
+  //       [currentApprovalKey]: true,
+  //     };
+  //     setApprovalStatus(newApprovalStatus);
+  //     localStorage.setItem("approvalStatus", JSON.stringify(newApprovalStatus));
 
-      return true;
-    } catch (error) {
-      console.error("Error approving token:", error);
-      toast.error("Failed to approve token");
-      return false;
-    } finally {
-      setIsApproving(false);
-    }
-  };
+  //     return true;
+  //   } catch (error) {
+  //     console.error("Error approving token:", error);
+  //     toast.error("Failed to approve token");
+  //     return false;
+  //   } finally {
+  //     setIsApproving(false);
+  //   }
+  // };
 
   // Check if approval is needed for current token
-  const isApprovalNeeded = () => {
-    if (!formData.tokenAddress || !formData.sourceChain) return false;
+  // const isApprovalNeeded = () => {
+  //   if (!formData.tokenAddress || !formData.sourceChain) return false;
 
-    const approvalKey = `${formData.tokenAddress}-${formData.sourceChain}`;
-    return !approvalStatus[approvalKey];
-  };
+  //   const approvalKey = `${formData.tokenAddress}-${formData.sourceChain}`;
+  //   return !approvalStatus[approvalKey];
+  // };
 
   // Fetch token info by address
   const fetchTokenInfo = async () => {
@@ -284,12 +283,12 @@ export default function Invest() {
   };
 
   // Get selected token info for display
-  const getSelectedTokenInfo = () => {
-    if (tokenSearchResult) {
-      return `${tokenSearchResult.name} (${tokenSearchResult.symbol})`;
-    }
-    return "No token selected";
-  };
+  // const getSelectedTokenInfo = () => {
+  //   if (tokenSearchResult) {
+  //     return `${tokenSearchResult.name} (${tokenSearchResult.symbol})`;
+  //   }
+  //   return "No token selected";
+  // };
 
   // Get token symbol for amount display
   const getTokenSymbol = () => {

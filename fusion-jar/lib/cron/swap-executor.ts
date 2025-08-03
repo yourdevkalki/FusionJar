@@ -199,7 +199,7 @@ export async function executeFusionSwap(
     const quote = await sdk.getQuote(quoteParams);
 
     // Approve USDC spending
-    const spenderAddress = quote.settlementAddress.val;
+    const spenderAddress = (quote.settlementAddress as any).val;
     const approved = await approveUSDC(
       web3,
       normalizedKey,
@@ -239,8 +239,8 @@ export async function executeFusionSwap(
             transactionHash:
               statusData.fills?.[0]?.txHash || orderInfo.orderHash,
             actualAmountIn: usdcAmount,
-            actualAmountOut: statusData.fills?.[0]?.dstTokenAmount,
-            resolverAddress: statusData.fills?.[0]?.resolver,
+            actualAmountOut: (statusData.fills?.[0] as any)?.dstTokenAmount,
+            resolverAddress: (statusData.fills?.[0] as any)?.resolver,
           };
         }
 

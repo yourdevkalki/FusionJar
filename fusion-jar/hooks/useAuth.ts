@@ -5,16 +5,9 @@ export function useAuth() {
   const [primaryWallet, setPrimaryWallet] = useState<any>(null);
 
   // Always call Privy hooks - they handle their own internal state
-  let privyData: any = {};
-  let walletsData: any = {};
-
-  try {
-    privyData = usePrivy();
-    walletsData = useWallets();
-  } catch (error) {
-    // Hooks were called, but Privy context is not available
-    console.warn("Privy context not available");
-  }
+  // These hooks will throw if Privy context is not available, but that's expected
+  const privyData = usePrivy();
+  const walletsData = useWallets();
 
   const {
     authenticated = false,
@@ -31,7 +24,7 @@ export function useAuth() {
   useEffect(() => {
     if (wallets && wallets.length > 0) {
       const embeddedWallet = wallets.find(
-        (wallet) => wallet.walletClientType === "privy"
+        (wallet: any) => wallet.walletClientType === "privy"
       );
       setPrimaryWallet(embeddedWallet || wallets[0]);
     } else {

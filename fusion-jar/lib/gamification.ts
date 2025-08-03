@@ -116,7 +116,8 @@ export async function updateGamificationData(
 ) {
   try {
     // Get or create user's gamification data
-    let { data: gamificationData, error } = await supabase
+    let gamificationData: any = null;
+    const { data: fetchedData, error } = await supabase
       .from("gamification_data")
       .select("*")
       .eq("user_address", userAddress)
@@ -148,6 +149,8 @@ export async function updateGamificationData(
     } else if (error) {
       console.error("Error fetching gamification data:", error);
       return;
+    } else {
+      gamificationData = fetchedData;
     }
 
     if (!gamificationData) {
@@ -182,12 +185,12 @@ export async function updateGamificationData(
         );
 
         gamificationData.last_login_date = today.toISOString();
-        
+
         // Check for 7-day streak bonus
         if (gamificationData.current_streak >= 7) {
           xpGained += 50; // 50 XP bonus for 7-day streak
         }
-        
+
         streakUpdated = true;
         break;
 
@@ -434,7 +437,7 @@ export async function handleDailyLogin(userAddress: string) {
   try {
     // Get user's gamification data
     const gamificationData = await getUserGamificationData(userAddress);
-    
+
     if (!gamificationData) {
       // Create new user data and grant login XP
       return await updateGamificationData(userAddress, { type: "daily_login" });
@@ -450,7 +453,7 @@ export async function handleDailyLogin(userAddress: string) {
     if (lastLogin) {
       const todayDateString = today.toDateString();
       const lastLoginDateString = lastLogin.toDateString();
-      
+
       if (todayDateString === lastLoginDateString) {
         return {
           xpGained: 0,

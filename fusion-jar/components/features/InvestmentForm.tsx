@@ -19,13 +19,15 @@ export default function InvestmentForm({ onSuccess }: InvestmentFormProps) {
     sourceChain: 1,
     targetToken: "",
     targetChain: 1,
-    amountUsd: 5,
+    amount: 5,
+    amountUnit: "USD",
     frequency: "weekly",
-    feeTolerance: 0.5,
+    startDate: new Date().toISOString(),
+    jarName: "My Investment",
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [quote, setQuote] = useState<unknown>(null);
+  const [quote, setQuote] = useState<any>(null);
   const [showQuote, setShowQuote] = useState(false);
 
   const sourceTokens = getTokensByChain(formData.sourceChain);
@@ -65,7 +67,7 @@ export default function InvestmentForm({ onSuccess }: InvestmentFormProps) {
         body: JSON.stringify({
           src: formData.sourceToken,
           dst: formData.targetToken,
-          amount: (formData.amountUsd * 1e6).toString(),
+          amount: (formData.amount * 1e6).toString(),
           from: address,
           chainId: formData.sourceChain,
         }),
@@ -112,9 +114,11 @@ export default function InvestmentForm({ onSuccess }: InvestmentFormProps) {
           sourceChain: 1,
           targetToken: "",
           targetChain: 1,
-          amountUsd: 5,
+          amount: 5,
+          amountUnit: "USD",
           frequency: "weekly",
-          feeTolerance: 0.5,
+          startDate: new Date().toISOString(),
+          jarName: "My Investment",
         });
         setQuote(null);
         setShowQuote(false);
@@ -249,11 +253,11 @@ export default function InvestmentForm({ onSuccess }: InvestmentFormProps) {
                 min="1"
                 max="10"
                 step="0.1"
-                value={formData.amountUsd}
+                value={formData.amount}
                 onChange={(e) =>
                   setFormData((prev) => ({
                     ...prev,
-                    amountUsd: Number(e.target.value),
+                    amount: Number(e.target.value),
                   }))
                 }
                 className="w-full px-3 py-2 border border-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-purple"
@@ -328,20 +332,15 @@ export default function InvestmentForm({ onSuccess }: InvestmentFormProps) {
 
           <div>
             <label className="block text-sm font-medium text-gray-500 mb-2">
-              Maximum fee: {formData.feeTolerance}%
+              Maximum fee: 0.5%
             </label>
             <input
               type="range"
               min="0.1"
               max="2"
               step="0.1"
-              value={formData.feeTolerance}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  feeTolerance: Number(e.target.value),
-                }))
-              }
+              value={0.5}
+              disabled
               className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
             />
             <div className="flex justify-between text-sm text-gray-500 mt-1">
@@ -364,14 +363,12 @@ export default function InvestmentForm({ onSuccess }: InvestmentFormProps) {
 
             {showQuote && quote && (
               <div className="p-4 bg-background rounded-lg">
-                <h4 className="font-medium text-white mb-2">
-                  Quote Preview
-                </h4>
+                <h4 className="font-medium text-white mb-2">Quote Preview</h4>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span>You pay:</span>
                     <span>
-                      ${formData.amountUsd}{" "}
+                      ${formData.amount}{" "}
                       {
                         getTokenDisplay(
                           formData.sourceToken,
@@ -383,7 +380,7 @@ export default function InvestmentForm({ onSuccess }: InvestmentFormProps) {
                   <div className="flex justify-between">
                     <span>You receive:</span>
                     <span>
-                      ~${(formData.amountUsd * 0.995).toFixed(2)}{" "}
+                      ~${(formData.amount * 0.995).toFixed(2)}{" "}
                       {
                         getTokenDisplay(
                           formData.targetToken,
@@ -394,7 +391,7 @@ export default function InvestmentForm({ onSuccess }: InvestmentFormProps) {
                   </div>
                   <div className="flex justify-between text-gray-500">
                     <span>Estimated fee:</span>
-                    <span>~${(formData.amountUsd * 0.005).toFixed(3)}</span>
+                    <span>~${(formData.amount * 0.005).toFixed(3)}</span>
                   </div>
                 </div>
               </div>

@@ -44,7 +44,18 @@ async function getTokenValuesAcrossChains(address: string) {
     }
 
     // Group tokens by chain and address
-    const tokenBalances: Record<string, any> = {};
+    const tokenBalances: Record<
+      string,
+      {
+        address: string;
+        chainId: number;
+        balance: string;
+        balanceUsd: number;
+        price: number;
+        symbol: string;
+        name: string;
+      }
+    > = {};
 
     executions?.forEach((execution) => {
       const key = `${execution.target_chain}-${execution.target_token}`;
@@ -68,10 +79,9 @@ async function getTokenValuesAcrossChains(address: string) {
     });
 
     // Get prices for all tokens across chains
-    const supportedChains = [1, 137, 8453, 42161, 10]; // Ethereum, Polygon, Base, Arbitrum, Optimism
     const totalValue = await calculateTotalValue(
       tokenBalances,
-      supportedChains
+      [1, 137, 8453, 42161, 10] // Ethereum, Polygon, Base, Arbitrum, Optimism
     );
 
     return {
@@ -88,12 +98,23 @@ async function getTokenValuesAcrossChains(address: string) {
 
 // Helper function to calculate total value using 1inch price API
 async function calculateTotalValue(
-  tokenBalances: Record<string, any>,
+  tokenBalances: Record<
+    string,
+    {
+      address: string;
+      chainId: number;
+      balance: string;
+      balanceUsd: number;
+      price: number;
+      symbol: string;
+      name: string;
+    }
+  >,
   chains: number[]
 ) {
   let totalValue = 0;
 
-  for (const [key, token] of Object.entries(tokenBalances)) {
+  for (const [, token] of Object.entries(tokenBalances)) {
     try {
       // Get price from 1inch API
       const priceData = await oneInchAPI.getTokenPrice({
@@ -157,7 +178,22 @@ function getTokenNameFromAddress(address: string): string {
 }
 
 // Helper function to derive portfolio data from transaction history
-function derivePortfolioFromHistory(historyData: any, address: string) {
+function derivePortfolioFromHistory(
+  historyData: {
+    items?: Array<{
+      timeMs?: number;
+      details?: {
+        tokenActions?: Array<{
+          chainId?: number;
+          address: string;
+          amount?: string;
+          direction?: string;
+        }>;
+      };
+    }>;
+  },
+  address: string
+) {
   if (!historyData?.items) {
     return {
       totalValue: 0,
@@ -169,7 +205,20 @@ function derivePortfolioFromHistory(historyData: any, address: string) {
     };
   }
 
-  const tokens: Record<string, any> = {};
+  const tokens: Record<
+    string,
+    {
+      address: string;
+      symbol: string;
+      name: string;
+      balance: string;
+      balanceUsd: number;
+      price: number;
+      chainId: number;
+      totalIn: number;
+      totalOut: number;
+    }
+  > = {};
   const chartData = [];
 
   // Analyze transactions to determine current holdings
@@ -211,7 +260,7 @@ function derivePortfolioFromHistory(historyData: any, address: string) {
 
   // Calculate estimated balances
   const tokenArray = Object.values(tokens)
-    .map((token: any) => ({
+    .map((token) => ({
       ...token,
       balance: Math.max(0, token.totalIn - token.totalOut).toString(),
       balanceUsd: Math.max(0, token.totalIn - token.totalOut) * 1, // Simplified USD value

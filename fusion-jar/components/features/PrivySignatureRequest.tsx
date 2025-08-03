@@ -61,7 +61,7 @@ export default function FinalAuthorization({
 
   // Check wallet types
   if (wallets && wallets.length > 0) {
-    wallets.forEach((wallet, index) => {
+    wallets.forEach((wallet: any, index: number) => {
       console.log(`- wallet[${index}]:`, {
         address: wallet.address,
         walletClientType: wallet.walletClientType,
@@ -69,8 +69,12 @@ export default function FinalAuthorization({
       });
     });
 
-    const embeddedWallet = wallets.find((w) => w.walletClientType === "privy");
-    const externalWallet = wallets.find((w) => w.walletClientType !== "privy");
+    const embeddedWallet = wallets.find(
+      (w: any) => w.walletClientType === "privy"
+    );
+    const externalWallet = wallets.find(
+      (w: any) => w.walletClientType !== "privy"
+    );
 
     console.log("- embeddedWallet found:", !!embeddedWallet);
     console.log("- externalWallet found:", !!externalWallet);
@@ -91,10 +95,14 @@ export default function FinalAuthorization({
     if (typeof primaryWallet.getEthereumProvider === "function") {
       primaryWallet
         .getEthereumProvider()
-        .then((provider: any) => {
-          console.log("- getEthereumProvider() result:", provider);
-        })
-        .catch((err: any) => {
+        .then(
+          (provider: {
+            request: (args: { method: string; params: any[] }) => Promise<any>;
+          }) => {
+            console.log("- getEthereumProvider() result:", provider);
+          }
+        )
+        .catch((err: Error) => {
           console.log("- getEthereumProvider() error:", err);
         });
     }
@@ -106,8 +114,9 @@ export default function FinalAuthorization({
 
   const [isAuthorizing, setIsAuthorizing] = useState(false);
   const [isCheckingApproval, setIsCheckingApproval] = useState(false);
-  const [isApproving, setIsApproving] = useState(false);
   const [approvalNeeded, setApprovalNeeded] = useState(false);
+  const [isApproving, setIsApproving] = useState(false);
+
   const [error, setError] = useState<string | null>(null);
   const [isCreatingEmbeddedWallet, setIsCreatingEmbeddedWallet] =
     useState(false);
@@ -115,7 +124,7 @@ export default function FinalAuthorization({
   // Check if user is using external wallet when embedded is preferred
   const isUsingExternalWallet = primaryWallet?.walletClientType !== "privy";
   const hasEmbeddedWallet = wallets?.some(
-    (w) => w.walletClientType === "privy"
+    (w: any) => w.walletClientType === "privy"
   );
 
   // Auto-create embedded wallet for better UX
@@ -126,15 +135,15 @@ export default function FinalAuthorization({
       console.log("🔄 Creating embedded wallet...");
       await createEmbeddedWallet();
       console.log("✅ Embedded wallet created successfully");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("❌ Failed to create embedded wallet:", error);
 
       // Handle user rejection gracefully
       if (
-        error?.code === 4001 ||
-        error?.code === "ACTION_REJECTED" ||
-        error?.message?.includes("user rejected") ||
-        error?.message?.includes("User denied")
+        (error as any)?.code === 4001 ||
+        (error as any)?.code === "ACTION_REJECTED" ||
+        (error as any)?.message?.includes("user rejected") ||
+        (error as any)?.message?.includes("User denied")
       ) {
         console.log("ℹ️ User cancelled embedded wallet creation");
         toast.error("Embedded wallet creation cancelled by user");
@@ -212,14 +221,16 @@ export default function FinalAuthorization({
         return false;
       }
       const signer = await provider.getSigner();
-      
+
       // Validate token address
       if (!jarData.tokenAddress || !ethers.isAddress(jarData.tokenAddress)) {
         setError(`Invalid token address: ${jarData.tokenAddress}`);
         return false;
       }
-      
-      console.log(`🔍 Creating token contract for approval check: ${jarData.tokenAddress}`);
+
+      console.log(
+        `🔍 Creating token contract for approval check: ${jarData.tokenAddress}`
+      );
       const tokenContract = new ethers.Contract(
         jarData.tokenAddress,
         ERC20_ABI,
@@ -257,15 +268,15 @@ export default function FinalAuthorization({
       setApprovalNeeded(!isApproved);
 
       return isApproved;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("❌ Error checking token approval:", error);
 
       // Handle user rejection gracefully
       if (
-        error?.code === 4001 ||
-        error?.code === "ACTION_REJECTED" ||
-        error?.message?.includes("user rejected") ||
-        error?.message?.includes("User denied")
+        (error as any)?.code === 4001 ||
+        (error as any)?.code === "ACTION_REJECTED" ||
+        (error as any)?.message?.includes("user rejected") ||
+        (error as any)?.message?.includes("User denied")
       ) {
         console.log("ℹ️ User rejected token approval check");
         toast.error("Token approval cancelled by user");
@@ -338,13 +349,13 @@ export default function FinalAuthorization({
         return false;
       }
       const signer = await provider.getSigner();
-      
+
       // Validate token address
       if (!jarData.tokenAddress || !ethers.isAddress(jarData.tokenAddress)) {
         setError(`Invalid token address: ${jarData.tokenAddress}`);
         return false;
       }
-      
+
       console.log(`🔍 Creating token contract for: ${jarData.tokenAddress}`);
       const tokenContract = new ethers.Contract(
         jarData.tokenAddress,
@@ -363,24 +374,27 @@ export default function FinalAuthorization({
       // Get token info for better UX with fallbacks
       let tokenSymbol = jarData.tokenSymbol || "Token";
       let tokenName = "Token";
-      
+
       try {
         // Try to get token info, but provide fallbacks if it fails
         const tokenInfo = await Promise.allSettled([
           tokenContract.symbol(),
           tokenContract.name(),
         ]);
-        
+
         if (tokenInfo[0].status === "fulfilled" && tokenInfo[0].value) {
           tokenSymbol = tokenInfo[0].value;
         }
         if (tokenInfo[1].status === "fulfilled" && tokenInfo[1].value) {
           tokenName = tokenInfo[1].value;
         }
-        
+
         console.log(`✅ Token info retrieved: ${tokenSymbol} (${tokenName})`);
       } catch (error) {
-        console.warn("⚠️ Could not retrieve token info, using fallbacks:", error);
+        console.warn(
+          "⚠️ Could not retrieve token info, using fallbacks:",
+          error
+        );
         // Continue with fallback values
       }
 

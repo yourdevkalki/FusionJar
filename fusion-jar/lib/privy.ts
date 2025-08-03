@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { PrivyProvider } from "@privy-io/react-auth";
 
 // Check if we're in a browser environment

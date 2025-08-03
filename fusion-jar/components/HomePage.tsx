@@ -2,19 +2,33 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import {
-  getUserGamificationData,
-  calculateLevel,
-  handleDailyLogin,
-} from "@/lib/gamification";
+import { getUserGamificationData, calculateLevel } from "@/lib/gamification";
 import { Trophy, Star, Target, Calendar, Zap, TrendingUp } from "lucide-react";
 import toast from "react-hot-toast";
 import { LandingPage } from "./LandingPage";
 
 export function HomePage() {
   const { address, authenticated, authenticatedFetch } = useAuth();
-  const [gamificationData, setGamificationData] = useState<any>(null);
-  const [recentInvestments, setRecentInvestments] = useState<any[]>([]);
+  const [gamificationData, setGamificationData] = useState<{
+    xp_points: number;
+    level: number;
+    total_investments: number;
+    streak_days: number;
+    current_streak: number;
+    longest_streak: number;
+  } | null>(null);
+  const [recentInvestments, setRecentInvestments] = useState<
+    Array<{
+      id: string;
+      amount: number;
+      source_chain: number;
+      target_chain: number;
+      source_token: string;
+      target_token: string;
+      created_at: string;
+      status: string;
+    }>
+  >([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -347,8 +361,8 @@ export function HomePage() {
                 Start Your Journey
               </h3>
               <p className="text-gray-400 text-sm mb-4">
-                You haven't made any investments yet. Start with as little as
-                $1!
+                You haven&apos;t made any investments yet. Start with as little
+                as $1!
               </p>
               <button
                 onClick={() => (window.location.href = "/create")}
@@ -384,7 +398,10 @@ export function HomePage() {
 
                 return (
                   <div
-                    key={investment.id || `investment-${index}-${investment.created_at}`}
+                    key={
+                      investment.id ||
+                      `investment-${index}-${investment.created_at}`
+                    }
                     className="bg-gray-800 rounded-lg p-4 flex items-center justify-between hover:bg-gray-750 transition-colors"
                   >
                     <div className="flex items-center space-x-4">

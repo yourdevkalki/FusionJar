@@ -3,8 +3,9 @@ import { getPortfolioAnalytics, getInvestmentInsights } from "@/lib/analytics";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { address: string } }
+  { params }: { params: Promise<{ address: string }> }
 ) {
+  const { address } = await params;
   try {
     const { searchParams } = new URL(request.url);
     const action = searchParams.get("action");
@@ -13,15 +14,12 @@ export async function GET(
 
     switch (action) {
       case "insights":
-        const insights = await getInvestmentInsights(params.address);
+        const insights = await getInvestmentInsights(address);
         return NextResponse.json(insights);
 
       default:
         // Get portfolio analytics
-        const analytics = await getPortfolioAnalytics(
-          params.address,
-          timeframe
-        );
+        const analytics = await getPortfolioAnalytics(address, timeframe);
         return NextResponse.json(analytics);
     }
   } catch (error) {

@@ -38,7 +38,7 @@ export async function GET(
     // If no results with lowercase, try with the original case
     if (!investmentIntents || investmentIntents.length === 0) {
       console.log("🔍 Debug - No results with lowercase, trying original case");
-      const { data: altIntents, error: altError } = await supabase
+      const { data: altIntents } = await supabase
         .from("investment_intents")
         .select("*")
         .ilike("user_address", address)
@@ -60,7 +60,7 @@ export async function GET(
     console.log("🔍 Debug - First intent:", investmentIntents?.[0]);
 
     // Debug: Check all intents in database to see what's stored
-    const { data: allIntents, error: allError } = await supabase
+    const { data: allIntents } = await supabase
       .from("investment_intents")
       .select("id, user_address, jar_name, created_at")
       .order("created_at", { ascending: false })

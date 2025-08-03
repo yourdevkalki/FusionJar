@@ -36,28 +36,40 @@ export class OneInchAPI {
   async getWalletBalances(address: string, chainId: number = 1) {
     try {
       const url = `${INCH_API_BASE}/balance/v1.2/${chainId}/balances/${address}`;
-      
+
       console.log(`🔍 Fetching balances from: ${url}`);
-      console.log(`🔑 Using API key: ${this.apiKey ? this.apiKey.substring(0, 8) + '...' : 'MISSING'}`);
-      
+      console.log(
+        `🔑 Using API key: ${
+          this.apiKey ? this.apiKey.substring(0, 8) + "..." : "MISSING"
+        }`
+      );
+
       const response = await fetch(url, {
         headers: {
-          "Authorization": `Bearer ${this.apiKey}`,
-          "accept": "application/json",
+          Authorization: `Bearer ${this.apiKey}`,
+          accept: "application/json",
           "content-type": "application/json",
         },
       });
 
-      console.log(`📡 Response status: ${response.status} ${response.statusText}`);
+      console.log(
+        `📡 Response status: ${response.status} ${response.statusText}`
+      );
 
       if (!response.ok) {
         const errorText = await response.text();
         console.error(`❌ 1inch API Error Response: ${errorText}`);
-        throw new Error(`1inch Balance API error: ${response.status} - ${errorText}`);
+        throw new Error(
+          `1inch Balance API error: ${response.status} - ${errorText}`
+        );
       }
 
       const data = await response.json();
-      console.log(`✅ Successfully fetched balances. Token count: ${Object.keys(data).length}`);
+      console.log(
+        `✅ Successfully fetched balances. Token count: ${
+          Object.keys(data).length
+        }`
+      );
       return data;
     } catch (error) {
       console.error("Error fetching wallet balances:", error);
@@ -66,14 +78,18 @@ export class OneInchAPI {
   }
 
   // Get specific token balance
-  async getTokenBalance(address: string, tokenAddress: string, chainId: number = 1) {
+  async getTokenBalance(
+    address: string,
+    tokenAddress: string,
+    chainId: number = 1
+  ) {
     try {
       const url = `${INCH_API_BASE}/balance/v1.2/${chainId}/balances/${address}`;
-      
+
       const response = await fetch(url, {
         headers: {
-          "Authorization": `Bearer ${this.apiKey}`,
-          "accept": "application/json",
+          Authorization: `Bearer ${this.apiKey}`,
+          accept: "application/json",
           "content-type": "application/json",
         },
       });
@@ -81,16 +97,18 @@ export class OneInchAPI {
       if (!response.ok) {
         const errorText = await response.text();
         console.error(`❌ 1inch API Error Response: ${errorText}`);
-        throw new Error(`1inch Balance API error: ${response.status} - ${errorText}`);
+        throw new Error(
+          `1inch Balance API error: ${response.status} - ${errorText}`
+        );
       }
 
       const data = await response.json();
-      
+
       // Filter for the specific token if needed
       if (tokenAddress && data[tokenAddress]) {
         return { [tokenAddress]: data[tokenAddress] };
       }
-      
+
       return data;
     } catch (error) {
       console.error("Error fetching token balance:", error);
@@ -113,11 +131,11 @@ export class OneInchAPI {
       56: NetworkEnum.BINANCE,
       137: NetworkEnum.POLYGON,
       42161: NetworkEnum.ARBITRUM,
-      8453: NetworkEnum.BASE,
+      8453: NetworkEnum.COINBASE,
       10: NetworkEnum.OPTIMISM,
     };
 
-    const network = networkMap[chainId] || NetworkEnum.BASE;
+    const network = networkMap[chainId] || NetworkEnum.ETHEREUM;
 
     // Create provider connector if private key is available
     let connector;
@@ -128,7 +146,7 @@ export class OneInchAPI {
     this.fusionSDK = new FusionSDK({
       url: "https://api.1inch.dev/fusion",
       network,
-      blockchainProvider: connector || web3Provider,
+      blockchainProvider: connector || undefined,
       authKey: this.apiKey,
     });
 
@@ -390,8 +408,8 @@ export class OneInchAPI {
 
       // Check if it's an allowance error
       if (
-        error.message.includes("Not enough allowance") ||
-        error.message.includes("allowance")
+        (error as any).message?.includes("Not enough allowance") ||
+        (error as any).message?.includes("allowance")
       ) {
         try {
           const approvalTx = await this.getApprovalTransaction({
@@ -410,7 +428,7 @@ export class OneInchAPI {
             timestamp: Date.now(),
             needsApproval: true,
             originalParams: params,
-            error: error.message,
+            error: (error as any).message,
             ...params,
           };
         } catch (approvalError) {
@@ -418,7 +436,9 @@ export class OneInchAPI {
         }
       }
 
-      throw new Error(`Failed to create 1inch swap order: ${error.message}`);
+      throw new Error(
+        `Failed to create 1inch swap order: ${(error as any).message}`
+      );
     }
   }
 
@@ -457,7 +477,7 @@ export class OneInchAPI {
         amount: params.amount,
         walletAddress: params.from,
         source: "fusion-jar",
-        preset: params.preset,
+        preset: params.preset as any,
       };
 
       // Create the order (this prepares it for signing)
@@ -494,7 +514,7 @@ export class OneInchAPI {
         phase: "ready",
         isFusion: false,
         message: "Using regular 1inch swap (Fusion+ unavailable)",
-        fallbackReason: "Fusion+ SDK error: " + error.message,
+        fallbackReason: "Fusion+ SDK error: " + (error as any).message,
       };
     }
   }
@@ -526,7 +546,7 @@ export class OneInchAPI {
         };
       } catch (error) {
         console.error("Fusion+ submission failed:", error);
-        throw new Error(`Fusion+ submission failed: ${error.message}`);
+        throw new Error(`Fusion+ submission failed: ${(error as any).message}`);
       }
     } else {
       // For regular swaps, return transaction data for user to execute
@@ -590,7 +610,9 @@ export class OneInchAPI {
         };
       } catch (error) {
         console.error("Error getting Fusion+ status:", error);
-        throw new Error(`Failed to get Fusion+ status: ${error.message}`);
+        throw new Error(
+          `Failed to get Fusion+ status: ${(error as any).message}`
+        );
       }
     } else {
       // For regular swaps, status depends on whether user has executed the transaction
@@ -628,19 +650,21 @@ export class OneInchAPI {
     // Using the correct endpoint: /v2.0/history/{address}/events
     // Based on https://portal.1inch.dev/documentation/apis/history/swagger
     const queryParams = new URLSearchParams();
-    
+
     if (params.chainId) {
       queryParams.append("chainId", params.chainId.toString());
     }
     if (params.page) {
-      queryParams.append("page", params.page.toString()); 
+      queryParams.append("page", params.page.toString());
     }
     if (params.limit) {
       queryParams.append("limit", params.limit.toString());
     }
 
-    const url = `${INCH_API_BASE}/history/v2.0/history/${params.address}/events${queryParams.toString() ? `?${queryParams}` : ''}`;
-    
+    const url = `${INCH_API_BASE}/history/v2.0/history/${
+      params.address
+    }/events${queryParams.toString() ? `?${queryParams}` : ""}`;
+
     console.log("Getting 1inch history with params:", params);
     console.log("Calling 1inch History API:", url);
 
@@ -667,9 +691,12 @@ export class OneInchAPI {
   }
 
   // Get token prices from multiple chains for portfolio calculation
-  async getMultiChainPrices(tokenAddresses: string[], chainIds: number[] = [1, 137, 8453]) {
+  async getMultiChainPrices(
+    tokenAddresses: string[],
+    chainIds: number[] = [1, 137, 8453]
+  ) {
     const prices: Record<string, number> = {};
-    
+
     for (const chainId of chainIds) {
       for (const tokenAddress of tokenAddresses) {
         try {
@@ -677,24 +704,24 @@ export class OneInchAPI {
           const key = `${chainId}-${tokenAddress.toLowerCase()}`;
           prices[key] = parseFloat(priceData[tokenAddress] || "0");
         } catch (error) {
-          console.warn(`Failed to get price for ${tokenAddress} on chain ${chainId}:`, error);
+          console.warn(
+            `Failed to get price for ${tokenAddress} on chain ${chainId}:`,
+            error
+          );
           // Continue with other tokens
         }
       }
     }
-    
+
     return prices;
   }
 
   // Get token prices using 1inch Spot Price API
-  async getTokenPrice(params: {
-    tokenAddress: string;
-    chainId?: number;
-  }) {
+  async getTokenPrice(params: { tokenAddress: string; chainId?: number }) {
     // Using Spot Price API: /v1.1/{chainId}/{tokenAddress}
     const chainId = params.chainId || 1; // Default to Ethereum
     const url = `${INCH_API_BASE}/price/v1.1/${chainId}/${params.tokenAddress}`;
-    
+
     console.log("Getting 1inch token price with params:", params);
     console.log("Calling 1inch Spot Price API:", url);
 
@@ -739,15 +766,18 @@ export class OneInchAPI {
 
 // Try different possible environment variable names for API key
 const getApiKey = () => {
-  const apiKey = process.env.INCH_API_KEY || 
-                 process.env.ONE_INCH_API_KEY || 
-                 process.env.ONEINCH_API_KEY;
-  
+  const apiKey =
+    process.env.INCH_API_KEY ||
+    process.env.ONE_INCH_API_KEY ||
+    process.env.ONEINCH_API_KEY;
+
   if (!apiKey) {
-    console.error("❌ No 1inch API key found. Please set INCH_API_KEY in your .env.local file");
+    console.error(
+      "❌ No 1inch API key found. Please set INCH_API_KEY in your .env.local file"
+    );
     throw new Error("1inch API key not configured");
   }
-  
+
   console.log(`✅ 1inch API key loaded: ${apiKey.substring(0, 8)}...`);
   return apiKey;
 };

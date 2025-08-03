@@ -3,13 +3,19 @@
 import { useState, useEffect } from "react";
 import { useAccount, useSignTypedData, useSendTransaction } from "wagmi";
 import { toast } from "react-hot-toast";
-import { SUPPORTED_CHAINS, TOKENS } from "../../lib/tokens";
+import { TOKENS } from "@/lib/tokens";
 
 interface Quote {
   dstAmount: string;
   estimatedGas?: string;
-  protocols?: any[];
-  fusionQuote?: any;
+  protocols?: Array<{
+    name: string;
+    part: number;
+  }>;
+  fusionQuote?: {
+    orderHash: string;
+    status: string;
+  };
   preset?: string;
   auctionStartAmount?: string;
   auctionEndAmount?: string;
@@ -19,15 +25,30 @@ interface SwapOrder {
   id: string;
   status: string;
   phase: string;
-  orderData?: any;
+  orderData?: {
+    orderHash: string;
+    status: string;
+  };
   orderHash?: string;
   message?: string;
   timestamp?: number;
   isFusion?: boolean;
-  txData?: any;
-  approvalTx?: any;
+  txData?: {
+    to: string;
+    data: string;
+    value: string;
+  };
+  approvalTx?: {
+    to: string;
+    data: string;
+    value: string;
+  };
   needsApproval?: boolean;
-  originalParams?: any;
+  originalParams?: {
+    src: string;
+    dst: string;
+    amount: string;
+  };
   requiresUserConfirmation?: boolean;
 }
 
@@ -36,12 +57,19 @@ interface OrderStatus {
   status: string;
   phase: string;
   message: string;
-  fills?: any[];
+  fills?: Array<{
+    amount: string;
+    price: string;
+  }>;
   timestamp: number;
   isFusion?: boolean;
 }
 
-export default function GaslessSwap() {
+interface GaslessSwapProps {
+  onSuccess?: () => void;
+}
+
+export default function GaslessSwap({ onSuccess }: GaslessSwapProps) {
   const { address, isConnected } = useAccount();
   const [isClient, setIsClient] = useState(false);
   const [selectedSrcToken, setSelectedSrcToken] = useState(
@@ -97,6 +125,7 @@ export default function GaslessSwap() {
             ) {
               setSwapStatus("success");
               toast.success("🎉 Fusion+ swap completed successfully!");
+              onSuccess?.();
               clearInterval(interval);
             } else if (
               statusData.phase === "expired" ||
@@ -259,10 +288,14 @@ export default function GaslessSwap() {
           ],
         } as const;
 
-        const makingAmount = (parseFloat(amount) * Math.pow(10, 6)).toString();
-        const takingAmount = quote.dstAmount || "0";
-        const salt =
-          order.orderData?.order?.salt?.toString() || Date.now().toString();
+        const makingAmount = BigInt(
+          (parseFloat(amount) * Math.pow(10, 6)).toString()
+        );
+        const takingAmount = BigInt(quote.dstAmount || "0");
+        const salt = BigInt(
+          (order.orderData as any)?.order?.salt?.toString() ||
+            Date.now().toString()
+        );
 
         const message = {
           salt: salt,
@@ -322,11 +355,7 @@ export default function GaslessSwap() {
           to: order.approvalTx.to as `0x${string}`,
           data: order.approvalTx.data as `0x${string}`,
           value: BigInt(order.approvalTx.value || 0),
-          gas: BigInt(
-            order.approvalTx.gasPrice
-              ? "200000"
-              : order.approvalTx.gas || "200000"
-          ),
+          gas: BigInt("200000"),
         });
 
         console.log("Approval transaction sent:", approvalTxHash);
@@ -369,6 +398,7 @@ export default function GaslessSwap() {
           console.log("Swap transaction sent:", swapTxHash);
           setSwapStatus("success");
           toast.success("🎉 1inch swap executed successfully!");
+          onSuccess?.();
           setSwapOrder((prev) =>
             prev ? { ...prev, orderHash: swapTxHash } : null
           );
@@ -389,12 +419,13 @@ export default function GaslessSwap() {
           to: order.txData.to as `0x${string}`,
           data: order.txData.data as `0x${string}`,
           value: BigInt(order.txData.value || 0),
-          gas: BigInt(order.txData.gas || 0),
+          gas: BigInt("200000"),
         });
 
         console.log("Transaction sent:", txHash);
         setSwapStatus("success");
         toast.success("🎉 1inch swap executed successfully!");
+        onSuccess?.();
 
         // Update order with transaction hash
         setSwapOrder((prev) => (prev ? { ...prev, orderHash: txHash } : null));

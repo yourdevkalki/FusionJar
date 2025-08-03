@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { SUPPORTED_CHAINS } from "@/lib/tokens";
+
 import { Wallet, RefreshCw, AlertCircle } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -24,6 +24,27 @@ interface ChainBalances {
   totalValueUsd: number;
 }
 
+type BalanceData =
+  | {
+      tokens?: Array<{
+        symbol: string;
+        name: string;
+        address: string;
+        decimals: number;
+        balance: string;
+        priceUsd?: number;
+      }>;
+    }
+  | Array<{
+      symbol: string;
+      name: string;
+      address: string;
+      decimals: number;
+      balance: string;
+      priceUsd?: number;
+    }>
+  | Record<string, string>;
+
 export function WalletBalance() {
   const { address, authenticatedFetch } = useAuth();
   const [balances, setBalances] = useState<ChainBalances[]>([]);
@@ -31,13 +52,7 @@ export function WalletBalance() {
   const [selectedChain, setSelectedChain] = useState<number>(1); // Default to Ethereum
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (address) {
-      fetchBalances();
-    }
-  }, [address, selectedChain]);
-
-  const fetchBalances = async () => {
+  const fetchBalances = useCallback(async () => {
     if (!address) return;
 
     setLoading(true);
@@ -80,17 +95,27 @@ export function WalletBalance() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [address, selectedChain, authenticatedFetch]);
 
-  const processTokenBalances = (balanceData: any): TokenBalance[] => {
-    if (!balanceData || typeof balanceData !== 'object') {
+  useEffect(() => {
+    if (address) {
+      fetchBalances();
+    }
+  }, [address, fetchBalances]);
+
+  const processTokenBalances = (balanceData: BalanceData): TokenBalance[] => {
+    if (!balanceData || typeof balanceData !== "object") {
       return [];
     }
 
     const tokens: TokenBalance[] = [];
 
     // Handle different possible response formats from 1inch Balance API
-    if (balanceData.tokens && Array.isArray(balanceData.tokens)) {
+    if (
+      "tokens" in balanceData &&
+      balanceData.tokens &&
+      Array.isArray(balanceData.tokens)
+    ) {
       // Format: { tokens: [...] }
       tokens.push(...balanceData.tokens.map(processTokenBalance));
     } else if (Array.isArray(balanceData)) {
@@ -98,27 +123,41 @@ export function WalletBalance() {
       tokens.push(...balanceData.map(processTokenBalance));
     } else {
       // Format: { tokenAddress: "balance", ... } (from curl response)
-      Object.entries(balanceData).forEach(([tokenAddress, balance]: [string, any]) => {
-        // Skip zero balances
-        if (balance === "0" || balance === 0) {
-          return;
-        }
+      Object.entries(balanceData).forEach(
+        ([tokenAddress, balance]: [string, any]) => {
+          // Skip zero balances
+          if (balance === "0" || balance === 0) {
+            return;
+          }
 
-        tokens.push(processTokenBalance({
-          address: tokenAddress,
-          balance: balance.toString(),
-          // Let processTokenBalance handle the symbol/name lookup
-        }));
-      });
+          tokens.push(
+            processTokenBalance({
+              address: tokenAddress,
+              balance: balance.toString(),
+              symbol: getTokenSymbol(tokenAddress),
+              name: getTokenName(tokenAddress),
+              decimals: getTokenDecimals(tokenAddress),
+              // Let processTokenBalance handle the symbol/name lookup
+            })
+          );
+        }
+      );
     }
 
     // Filter out zero balances and sort by value
     return tokens
-      .filter(token => token.balanceFormatted > 0)
+      .filter((token) => token.balanceFormatted > 0)
       .sort((a, b) => (b.valueUsd || 0) - (a.valueUsd || 0));
   };
 
-  const processTokenBalance = (tokenData: any): TokenBalance => {
+  const processTokenBalance = (tokenData: {
+    symbol: string;
+    name: string;
+    address: string;
+    decimals: number;
+    balance: string;
+    priceUsd?: number;
+  }): TokenBalance => {
     // Handle different input formats
     let balance: string;
     let address: string;
@@ -137,12 +176,12 @@ export function WalletBalance() {
       // Object format
       balance = tokenData.balance || tokenData.toString() || "0";
       address = tokenData.address || "";
-      
+
       // Get token info from address
       const tokenSymbol = getTokenSymbol(address);
       const tokenName = getTokenName(address);
       const tokenDecimals = getTokenDecimals(address);
-      
+
       decimals = tokenData.decimals || tokenDecimals || 18;
       symbol = tokenData.symbol || tokenSymbol || "UNKNOWN";
       name = tokenData.name || tokenName || "Unknown Token";
@@ -188,10 +227,10 @@ export function WalletBalance() {
   const getTokenDecimals = (address: string): number => {
     const knownTokens: Record<string, number> = {
       "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee": 18, // ETH
-      "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48": 6,  // USDC
-      "0xdac17f958d2ee523a2206206994597c13d831ec7": 6,  // USDT
+      "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48": 6, // USDC
+      "0xdac17f958d2ee523a2206206994597c13d831ec7": 6, // USDT
       "0x6b175474e89094c44da98b954eedeac495271d0f": 18, // DAI
-      "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599": 8,  // WBTC
+      "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599": 8, // WBTC
     };
     return knownTokens[address.toLowerCase()] || 18; // Default to 18
   };
@@ -230,7 +269,9 @@ export function WalletBalance() {
           <Wallet className="w-5 h-5 text-white" />
           <h3 className="text-xl font-bold text-white">Wallet Balance</h3>
         </div>
-        <p className="text-[var(--secondary-400)]">Connect your wallet to view balances</p>
+        <p className="text-[var(--secondary-400)]">
+          Connect your wallet to view balances
+        </p>
       </div>
     );
   }
@@ -316,7 +357,10 @@ export function WalletBalance() {
                       </div>
                       <div className="text-right">
                         <div className="font-medium text-white">
-                          {formatTokenAmount(token.balanceFormatted, token.symbol)}
+                          {formatTokenAmount(
+                            token.balanceFormatted,
+                            token.symbol
+                          )}
                         </div>
                         {token.valueUsd && token.valueUsd > 0 && (
                           <div className="text-sm text-green-400">

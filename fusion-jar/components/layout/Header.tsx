@@ -49,7 +49,7 @@ export function Header() {
             {authenticated ? (
               <div className="flex items-center space-x-3">
                 <div className="text-sm text-gray-500">
-                  {user?.email || user?.phone || "User"}
+                  {user?.email?.address || user?.phone?.number || "User"}
                 </div>
                 {address && (
                   <div className="text-xs text-gray-500">

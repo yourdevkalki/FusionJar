@@ -33,7 +33,7 @@ export async function checkChainBalance(
     const contract = new web3.eth.Contract(ERC20_ABI, chainConfig.usdcAddress);
 
     const balance = await contract.methods.balanceOf(userAddress).call();
-    const balanceFormatted = Number(balance) / Math.pow(10, USDC_DECIMALS);
+    const balanceFormatted = Number(balance || 0) / Math.pow(10, USDC_DECIMALS);
 
     console.log(
       `💰 ${chainConfig.name} USDC balance: ${balanceFormatted} USDC`
@@ -43,7 +43,7 @@ export async function checkChainBalance(
       chainId,
       chainName: chainConfig.name,
       usdcAddress: chainConfig.usdcAddress,
-      balance: balance.toString(),
+      balance: (balance || 0).toString(),
       balanceFormatted,
       rpcUrl: chainConfig.rpcUrl,
     };

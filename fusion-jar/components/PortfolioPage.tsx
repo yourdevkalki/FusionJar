@@ -64,14 +64,16 @@ interface InvestmentIntent {
 export function PortfolioPage() {
   const { address, authenticatedFetch } = useAuth();
   const chartRef = useRef<HTMLCanvasElement>(null);
-  const chartInstanceRef = useRef<any>(null);
+  const chartInstanceRef = useRef<{
+    destroy: () => void;
+  } | null>(null);
   const [portfolioData, setPortfolioData] = useState<PortfolioData | null>(
     null
   );
   const [investmentIntents, setInvestmentIntents] = useState<
     InvestmentIntent[]
   >([]);
-  const [selectedChain, setSelectedChain] = useState<number | null>(null);
+  const [selectedChain] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [jarsLoading, setJarsLoading] = useState(true);
   const [expandedJars, setExpandedJars] = useState<Set<string>>(new Set());
@@ -128,7 +130,7 @@ export function PortfolioPage() {
       fetchPortfolioData();
       fetchInvestmentIntents();
     }
-  }, [address, selectedChain]);
+  }, [address, selectedChain, fetchPortfolioData, fetchInvestmentIntents]);
 
   useEffect(() => {
     if (chartRef.current && portfolioData?.chartData) {
@@ -192,7 +194,6 @@ export function PortfolioPage() {
                   beginAtZero: false,
                   grid: {
                     color: "#2e2e48",
-                    drawBorder: false,
                   },
                   ticks: {
                     color: "#8a8a94",
@@ -207,7 +208,6 @@ export function PortfolioPage() {
                 x: {
                   grid: {
                     display: false,
-                    drawBorder: false,
                   },
                   ticks: {
                     color: "#8a8a94",
@@ -239,9 +239,9 @@ export function PortfolioPage() {
     }).format(value);
   };
 
-  const formatPercent = (value: number) => {
-    return `${value >= 0 ? "+" : ""}${value.toFixed(2)}%`;
-  };
+  // const formatPercent = (value: number) => {
+  //   return `${value >= 0 ? "+" : ""}${value.toFixed(2)}%`;
+  // };
 
   const getChainName = (chainId: number) => {
     const chain = SUPPORTED_CHAINS.find((c) => c.id === chainId);
