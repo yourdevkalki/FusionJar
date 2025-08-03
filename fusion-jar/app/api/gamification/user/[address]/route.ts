@@ -8,8 +8,9 @@ import {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { address: string } }
+  { params }: { params: Promise<{ address: string }> }
 ) {
+  const { address } = await params;
   try {
     const { searchParams } = new URL(request.url);
     const action = searchParams.get("action");
@@ -26,7 +27,7 @@ export async function GET(
 
       default:
         // Get user gamification data
-        const userData = await getUserGamificationData(params.address);
+        const userData = await getUserGamificationData(address);
 
         if (!userData) {
           return NextResponse.json(

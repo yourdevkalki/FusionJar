@@ -6,20 +6,24 @@ import dynamic from "next/dynamic";
 
 function PrivyProviderInner({ children }: { children: React.ReactNode }) {
   // Get the app ID from environment variables
-  const appId = process.env.NEXT_PUBLIC_PRIVY_APP_ID || 'demo-app-id';
-  
+  const appId = process.env.NEXT_PUBLIC_PRIVY_APP_ID || "demo-app-id";
+
   // Memoize configuration to prevent re-renders that might cause key issues
-  const config = useMemo(() => ({
-    loginMethods: ["email", "sms", "wallet"],
-    appearance: {
-      theme: "light",
-      accentColor: "#676FFF",
-      showWalletLoginFirst: false,
-    },
-    embeddedWallets: {
-      createOnLogin: "users-without-wallets",
-    },
-  }), []);
+  const config = useMemo(
+    () =>
+      ({
+        loginMethods: ["email", "sms", "wallet"],
+        appearance: {
+          theme: "light" as const,
+          accentColor: "#676FFF" as `#${string}`,
+          showWalletLoginFirst: false,
+        },
+        embeddedWallets: {
+          createOnLogin: "users-without-wallets",
+        },
+      } as any),
+    []
+  );
 
   return (
     <PrivyProviderBase appId={appId} config={config}>
@@ -29,7 +33,10 @@ function PrivyProviderInner({ children }: { children: React.ReactNode }) {
 }
 
 // Dynamically import to prevent SSR issues
-export const PrivyProvider = dynamic(() => Promise.resolve(PrivyProviderInner), {
-  ssr: false,
-  loading: () => <div>Loading...</div>,
-});
+export const PrivyProvider = dynamic(
+  () => Promise.resolve(PrivyProviderInner),
+  {
+    ssr: false,
+    loading: () => <div>Loading...</div>,
+  }
+);

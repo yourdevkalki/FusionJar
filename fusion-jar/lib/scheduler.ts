@@ -22,7 +22,7 @@ interface ScheduledInvestment {
 class InvestmentScheduler {
   private static instance: InvestmentScheduler;
   private isRunning: boolean = false;
-  private cronJobs: cron.ScheduledTask[] = [];
+  private cronJobs: any[] = [];
 
   private constructor() {}
 

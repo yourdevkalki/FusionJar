@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         error: "Failed to submit Fusion+ order",
-        details: error.message,
+        details: error instanceof Error ? error.message : "Unknown error",
         phase: "announcement",
       },
       { status: 500 }

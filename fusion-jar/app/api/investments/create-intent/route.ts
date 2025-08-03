@@ -36,14 +36,14 @@ export async function POST(request: NextRequest) {
       success: true,
       phase: "announcement",
       message: "Fusion+ order created - ready for signing and Dutch auction",
-      ...fusionOrder,
+      fusionOrder,
     });
   } catch (error) {
     console.error("Create Fusion+ order error:", error);
     return NextResponse.json(
       {
         error: "Failed to create Fusion+ order",
-        details: error.message,
+        details: error instanceof Error ? error.message : "Unknown error",
         phase: "announcement",
       },
       { status: 500 }

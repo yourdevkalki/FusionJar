@@ -56,12 +56,11 @@ export default function SignatureRequest({
       });
 
       // Request signature from user
-      const signature = await signMessage({ message });
+      await signMessage({ message });
 
-      if (signature) {
-        const timestamp = new Date().toISOString();
-        onSignatureComplete(signature, timestamp, expiryDate.toISOString());
-      }
+      // If we reach here, the signature was successful
+      const timestamp = new Date().toISOString();
+      onSignatureComplete("", timestamp, expiryDate.toISOString());
     } catch (err) {
       console.error("Error signing message:", err);
       setError("Failed to sign message. Please try again.");
