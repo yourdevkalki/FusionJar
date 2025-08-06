@@ -24,12 +24,12 @@ export function SimpleConnectButton() {
   if (isConnected) {
     return (
       <div className="flex items-center gap-4">
-        <span className="text-sm text-gray-600">
+        <span className="text-sm text-gray-500">
           {address?.slice(0, 6)}...{address?.slice(-4)}
         </span>
         <button
           onClick={() => disconnect()}
-          className="bg-red-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-red-600 transition-colors"
+          className="bg-red0 text-white px-4 py-2 rounded-lg text-sm hover:bg-red transition-colors"
         >
           Disconnect
         </button>
@@ -44,7 +44,7 @@ export function SimpleConnectButton() {
           key={connector.uid}
           onClick={() => handleConnect(connector)}
           disabled={isConnecting}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 transition-colors disabled:opacity-50"
+          className="bg-purple text-white px-4 py-2 rounded-lg text-sm hover:bg-purple-dark transition-colors disabled:opacity-50"
         >
           {isConnecting ? "Connecting..." : `Connect ${connector.name}`}
         </button>

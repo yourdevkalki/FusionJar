@@ -1,40 +1,39 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { PrivyProvider } from "@/components/providers/PrivyProvider";
 import { WalletProvider } from "@/components/providers/WalletProvider";
-import { Header } from "@/components/layout/Header";
-import "@/lib/startup"; // Initialize services
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+import { Navbar } from "@/components/layout/Navbar";
+import { Toaster } from "react-hot-toast";
 
 export const metadata: Metadata = {
-  title: "Fusion Jar - Gasless Cross-Chain Micro-Investments",
-  description:
-    "Automate your micro-investments across chains with gasless swaps. Build wealth one dollar at a time with gamified savings.",
+  title: "Fusion Jar",
+  description: "Automate DeFi micro-investments",
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <WalletProvider>
-          <Header />
-          <main className="min-h-screen bg-gray-50">{children}</main>
-        </WalletProvider>
+      <body className="font-sans">
+        <PrivyProvider>
+          <WalletProvider>
+            <Navbar />
+            {children}
+            <Toaster
+              position="top-right"
+              toastOptions={{
+                duration: 4000,
+                style: {
+                  background: "#363636",
+                  color: "#fff",
+                },
+              }}
+            />
+          </WalletProvider>
+        </PrivyProvider>
       </body>
     </html>
   );

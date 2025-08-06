@@ -19,13 +19,15 @@ export default function InvestmentForm({ onSuccess }: InvestmentFormProps) {
     sourceChain: 1,
     targetToken: "",
     targetChain: 1,
-    amountUsd: 5,
+    amount: 5,
+    amountUnit: "USD",
     frequency: "weekly",
-    feeTolerance: 0.5,
+    startDate: new Date().toISOString(),
+    jarName: "My Investment",
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [quote, setQuote] = useState<unknown>(null);
+  const [quote, setQuote] = useState<any>(null);
   const [showQuote, setShowQuote] = useState(false);
 
   const sourceTokens = getTokensByChain(formData.sourceChain);
@@ -65,7 +67,7 @@ export default function InvestmentForm({ onSuccess }: InvestmentFormProps) {
         body: JSON.stringify({
           src: formData.sourceToken,
           dst: formData.targetToken,
-          amount: (formData.amountUsd * 1e6).toString(),
+          amount: (formData.amount * 1e6).toString(),
           from: address,
           chainId: formData.sourceChain,
         }),
@@ -112,9 +114,11 @@ export default function InvestmentForm({ onSuccess }: InvestmentFormProps) {
           sourceChain: 1,
           targetToken: "",
           targetChain: 1,
-          amountUsd: 5,
+          amount: 5,
+          amountUnit: "USD",
           frequency: "weekly",
-          feeTolerance: 0.5,
+          startDate: new Date().toISOString(),
+          jarName: "My Investment",
         });
         setQuote(null);
         setShowQuote(false);
@@ -142,11 +146,11 @@ export default function InvestmentForm({ onSuccess }: InvestmentFormProps) {
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Source Chain & Token */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-900">Source</h3>
+          <h3 className="text-lg font-semibold text-white">Source</h3>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-500 mb-2">
                 Chain
               </label>
               <select
@@ -154,7 +158,7 @@ export default function InvestmentForm({ onSuccess }: InvestmentFormProps) {
                 onChange={(e) =>
                   handleChainChange("sourceChain", Number(e.target.value))
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-purple"
               >
                 {SUPPORTED_CHAINS.map((chain) => (
                   <option key={chain.id} value={chain.id}>
@@ -165,7 +169,7 @@ export default function InvestmentForm({ onSuccess }: InvestmentFormProps) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-500 mb-2">
                 Token
               </label>
               <select
@@ -173,7 +177,7 @@ export default function InvestmentForm({ onSuccess }: InvestmentFormProps) {
                 onChange={(e) =>
                   handleTokenChange("sourceToken", e.target.value)
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-purple"
               >
                 <option value="">Select token</option>
                 {sourceTokens.map((token) => (
@@ -188,11 +192,11 @@ export default function InvestmentForm({ onSuccess }: InvestmentFormProps) {
 
         {/* Target Chain & Token */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-900">Target</h3>
+          <h3 className="text-lg font-semibold text-white">Target</h3>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-500 mb-2">
                 Chain
               </label>
               <select
@@ -200,7 +204,7 @@ export default function InvestmentForm({ onSuccess }: InvestmentFormProps) {
                 onChange={(e) =>
                   handleChainChange("targetChain", Number(e.target.value))
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-purple"
               >
                 {SUPPORTED_CHAINS.map((chain) => (
                   <option key={chain.id} value={chain.id}>
@@ -211,7 +215,7 @@ export default function InvestmentForm({ onSuccess }: InvestmentFormProps) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-500 mb-2">
                 Token
               </label>
               <select
@@ -219,7 +223,7 @@ export default function InvestmentForm({ onSuccess }: InvestmentFormProps) {
                 onChange={(e) =>
                   handleTokenChange("targetToken", e.target.value)
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-purple"
               >
                 <option value="">Select token</option>
                 {targetTokens.map((token) => (
@@ -234,13 +238,13 @@ export default function InvestmentForm({ onSuccess }: InvestmentFormProps) {
 
         {/* Investment Amount */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+          <h3 className="text-lg font-semibold text-white flex items-center gap-2">
             <DollarSign className="w-5 h-5" />
             Investment Amount
           </h3>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-500 mb-2">
               Amount (USD)
             </label>
             <div className="relative">
@@ -249,17 +253,17 @@ export default function InvestmentForm({ onSuccess }: InvestmentFormProps) {
                 min="1"
                 max="10"
                 step="0.1"
-                value={formData.amountUsd}
+                value={formData.amount}
                 onChange={(e) =>
                   setFormData((prev) => ({
                     ...prev,
-                    amountUsd: Number(e.target.value),
+                    amount: Number(e.target.value),
                   }))
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-purple"
                 placeholder="Enter amount ($1-$10)"
               />
-              <div className="absolute right-3 top-2 text-gray-400">USD</div>
+              <div className="absolute right-3 top-2 text-gray-500">USD</div>
             </div>
             <p className="text-sm text-gray-500 mt-1">Range: $1 - $10</p>
           </div>
@@ -267,13 +271,13 @@ export default function InvestmentForm({ onSuccess }: InvestmentFormProps) {
 
         {/* Frequency */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+          <h3 className="text-lg font-semibold text-white flex items-center gap-2">
             <Calendar className="w-5 h-5" />
             Frequency
           </h3>
 
           <div className="grid grid-cols-2 gap-4">
-            <label className="flex items-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+            <label className="flex items-center p-4 border border-gray-500 rounded-lg cursor-pointer hover:bg-background">
               <input
                 type="radio"
                 name="frequency"
@@ -295,7 +299,7 @@ export default function InvestmentForm({ onSuccess }: InvestmentFormProps) {
               </div>
             </label>
 
-            <label className="flex items-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+            <label className="flex items-center p-4 border border-gray-500 rounded-lg cursor-pointer hover:bg-background">
               <input
                 type="radio"
                 name="frequency"
@@ -321,27 +325,22 @@ export default function InvestmentForm({ onSuccess }: InvestmentFormProps) {
 
         {/* Fee Tolerance */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+          <h3 className="text-lg font-semibold text-white flex items-center gap-2">
             <Settings className="w-5 h-5" />
             Fee Tolerance
           </h3>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Maximum fee: {formData.feeTolerance}%
+            <label className="block text-sm font-medium text-gray-500 mb-2">
+              Maximum fee: 0.5%
             </label>
             <input
               type="range"
               min="0.1"
               max="2"
               step="0.1"
-              value={formData.feeTolerance}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  feeTolerance: Number(e.target.value),
-                }))
-              }
+              value={0.5}
+              disabled
               className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
             />
             <div className="flex justify-between text-sm text-gray-500 mt-1">
@@ -357,21 +356,19 @@ export default function InvestmentForm({ onSuccess }: InvestmentFormProps) {
             <button
               type="button"
               onClick={getQuote}
-              className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 bg-purple text-white rounded-md hover:bg-purple-dark focus:outline-none focus:ring-2 focus:ring-purple"
             >
               Get Quote Preview
             </button>
 
             {showQuote && quote && (
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <h4 className="font-medium text-gray-900 mb-2">
-                  Quote Preview
-                </h4>
+              <div className="p-4 bg-background rounded-lg">
+                <h4 className="font-medium text-white mb-2">Quote Preview</h4>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span>You pay:</span>
                     <span>
-                      ${formData.amountUsd}{" "}
+                      ${formData.amount}{" "}
                       {
                         getTokenDisplay(
                           formData.sourceToken,
@@ -383,7 +380,7 @@ export default function InvestmentForm({ onSuccess }: InvestmentFormProps) {
                   <div className="flex justify-between">
                     <span>You receive:</span>
                     <span>
-                      ~${(formData.amountUsd * 0.995).toFixed(2)}{" "}
+                      ~${(formData.amount * 0.995).toFixed(2)}{" "}
                       {
                         getTokenDisplay(
                           formData.targetToken,
@@ -394,7 +391,7 @@ export default function InvestmentForm({ onSuccess }: InvestmentFormProps) {
                   </div>
                   <div className="flex justify-between text-gray-500">
                     <span>Estimated fee:</span>
-                    <span>~${(formData.amountUsd * 0.005).toFixed(3)}</span>
+                    <span>~${(formData.amount * 0.005).toFixed(3)}</span>
                   </div>
                 </div>
               </div>

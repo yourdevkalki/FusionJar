@@ -73,7 +73,7 @@ export default function PortfolioDashboard() {
       case "failed":
         return <XCircle className="w-5 h-5 text-red-500" />;
       case "pending":
-        return <Clock className="w-5 h-5 text-yellow-500" />;
+        return <Clock className="w-5 h-5 text-yellow" />;
       default:
         return <Clock className="w-5 h-5 text-gray-500" />;
     }
@@ -82,13 +82,13 @@ export default function PortfolioDashboard() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "fulfilled":
-        return "text-green-600 bg-green-100";
+        return "text-green bg-green-100";
       case "failed":
         return "text-red-600 bg-red-100";
       case "pending":
         return "text-yellow-600 bg-yellow-100";
       default:
-        return "text-gray-600 bg-gray-100";
+        return "text-gray-500 bg-gray-500";
     }
   };
 
@@ -117,25 +117,25 @@ export default function PortfolioDashboard() {
     <div className="space-y-8">
       {/* Portfolio Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-background p-6 rounded-lg shadow">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">
+              <p className="text-sm font-medium text-gray-500">
                 Total Invested
               </p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-2xl font-bold text-white">
                 ${portfolio.total_invested_usd.toFixed(2)}
               </p>
             </div>
-            <DollarSign className="w-8 h-8 text-blue-500" />
+            <DollarSign className="w-8 h-8 text-purple" />
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-background p-6 rounded-lg shadow">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Current Value</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-sm font-medium text-gray-500">Current Value</p>
+              <p className="text-2xl font-bold text-white">
                 ${portfolio.current_value_usd.toFixed(2)}
               </p>
             </div>
@@ -143,14 +143,14 @@ export default function PortfolioDashboard() {
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-background p-6 rounded-lg shadow">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Total ROI</p>
+              <p className="text-sm font-medium text-gray-500">Total ROI</p>
               <p
                 className={`text-2xl font-bold ${
                   portfolio.total_roi_percentage >= 0
-                    ? "text-green-600"
+                    ? "text-green"
                     : "text-red-600"
                 }`}
               >
@@ -166,11 +166,11 @@ export default function PortfolioDashboard() {
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-background p-6 rounded-lg shadow">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Success Rate</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-sm font-medium text-gray-500">Success Rate</p>
+              <p className="text-2xl font-bold text-white">
                 {portfolio.total_executions > 0
                   ? (
                       (portfolio.successful_executions /
@@ -188,15 +188,15 @@ export default function PortfolioDashboard() {
 
       {/* Active Investment Intents */}
       {intents.length > 0 && (
-        <div className="bg-white rounded-lg shadow">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900">
+        <div className="bg-background rounded-lg shadow">
+          <div className="px-6 py-4 border-b border-gray-500">
+            <h3 className="text-lg font-semibold text-white">
               Active Investment Intents
             </h3>
           </div>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+              <thead className="bg-background">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Strategy
@@ -215,11 +215,11 @@ export default function PortfolioDashboard() {
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-background divide-y divide-gray-200">
                 {intents.map((intent) => (
-                  <tr key={intent.id} className="hover:bg-gray-50">
+                  <tr key={intent.id} className="hover:bg-background">
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">
+                      <div className="text-sm font-medium text-white">
                         {getTokenDisplay(
                           intent.source_token,
                           intent.source_chain
@@ -235,10 +235,10 @@ export default function PortfolioDashboard() {
                         {getChainDisplay(intent.target_chain)}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
                       ${intent.amount_usd}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
                       {intent.frequency.charAt(0).toUpperCase() +
                         intent.frequency.slice(1)}
                     </td>
@@ -265,15 +265,15 @@ export default function PortfolioDashboard() {
 
       {/* Investment History */}
       {executions.length > 0 && (
-        <div className="bg-white rounded-lg shadow">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900">
+        <div className="bg-background rounded-lg shadow">
+          <div className="px-6 py-4 border-b border-gray-500">
+            <h3 className="text-lg font-semibold text-white">
               Investment History
             </h3>
           </div>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+              <thead className="bg-background">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Transaction
@@ -292,11 +292,11 @@ export default function PortfolioDashboard() {
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-background divide-y divide-gray-200">
                 {executions.slice(0, 10).map((execution) => (
-                  <tr key={execution.id} className="hover:bg-gray-50">
+                  <tr key={execution.id} className="hover:bg-background">
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">
+                      <div className="text-sm font-medium text-white">
                         {getTokenDisplay(
                           execution.source_token,
                           execution.source_chain
@@ -313,7 +313,7 @@ export default function PortfolioDashboard() {
                             href={`https://etherscan.io/tx/${execution.transaction_hash}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-blue-600 hover:text-blue-800"
+                            className="text-purple hover:text-blue-800"
                           >
                             View on Explorer
                           </a>
@@ -322,10 +322,10 @@ export default function PortfolioDashboard() {
                         )}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
                       ${execution.amount_usd}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
                       ${parseFloat(execution.fee_paid || "0").toFixed(4)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -352,7 +352,7 @@ export default function PortfolioDashboard() {
             </table>
           </div>
           {executions.length > 10 && (
-            <div className="px-6 py-4 border-t border-gray-200 text-center">
+            <div className="px-6 py-4 border-t border-gray-500 text-center">
               <p className="text-sm text-gray-500">
                 Showing 10 of {executions.length} executions
               </p>
@@ -364,10 +364,10 @@ export default function PortfolioDashboard() {
       {/* Empty State */}
       {intents.length === 0 && executions.length === 0 && (
         <div className="text-center py-12">
-          <div className="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-            <DollarSign className="w-12 h-12 text-gray-400" />
+          <div className="mx-auto w-24 h-24 bg-gray-500 rounded-full flex items-center justify-center mb-4">
+            <DollarSign className="w-12 h-12 text-gray-500" />
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
+          <h3 className="text-lg font-medium text-white mb-2">
             No investments yet
           </h3>
           <p className="text-gray-500 mb-6">
@@ -376,7 +376,7 @@ export default function PortfolioDashboard() {
           </p>
           <a
             href="/create"
-            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            className="inline-flex items-center px-4 py-2 bg-purple text-white rounded-md hover:bg-purple-dark"
           >
             Create Investment
           </a>

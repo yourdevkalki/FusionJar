@@ -109,18 +109,18 @@ export default function GamificationDashboard() {
 
   const getLevelColor = (level: number) => {
     if (level >= 20) return "text-purple-600";
-    if (level >= 15) return "text-blue-600";
-    if (level >= 10) return "text-green-600";
+    if (level >= 15) return "text-purple";
+    if (level >= 10) return "text-green";
     if (level >= 5) return "text-yellow-600";
-    return "text-gray-600";
+    return "text-gray-500";
   };
 
   const getStreakColor = (streak: number) => {
     if (streak >= 30) return "text-red-600";
     if (streak >= 15) return "text-orange-600";
     if (streak >= 7) return "text-yellow-600";
-    if (streak >= 3) return "text-green-600";
-    return "text-gray-600";
+    if (streak >= 3) return "text-green";
+    return "text-gray-500";
   };
 
   if (isLoading) {
@@ -142,8 +142,8 @@ export default function GamificationDashboard() {
   if (!gamificationData) {
     return (
       <div className="text-center py-12">
-        <Trophy className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">
+        <Trophy className="mx-auto h-12 w-12 text-gray-500 mb-4" />
+        <h3 className="text-lg font-medium text-white mb-2">
           Start Your Journey
         </h3>
         <p className="text-gray-500 mb-6">
@@ -151,7 +151,7 @@ export default function GamificationDashboard() {
         </p>
         <a
           href="/create"
-          className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          className="inline-flex items-center px-4 py-2 bg-purple text-white rounded-md hover:bg-purple-dark"
         >
           Create Investment
         </a>
@@ -187,10 +187,10 @@ export default function GamificationDashboard() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-background p-6 rounded-lg shadow">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">
+              <p className="text-sm font-medium text-gray-500">
                 Current Streak
               </p>
               <p
@@ -209,13 +209,13 @@ export default function GamificationDashboard() {
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-background p-6 rounded-lg shadow">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">
+              <p className="text-sm font-medium text-gray-500">
                 Longest Streak
               </p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-2xl font-bold text-white">
                 {gamificationData.longest_streak} days
               </p>
             </div>
@@ -223,25 +223,25 @@ export default function GamificationDashboard() {
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-background p-6 rounded-lg shadow">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">
+              <p className="text-sm font-medium text-gray-500">
                 Total Investments
               </p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-2xl font-bold text-white">
                 {gamificationData.total_investments}
               </p>
             </div>
-            <Target className="w-8 h-8 text-blue-500" />
+            <Target className="w-8 h-8 text-purple" />
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-background p-6 rounded-lg shadow">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Badges Earned</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-sm font-medium text-gray-500">Badges Earned</p>
+              <p className="text-2xl font-bold text-white">
                 {gamificationData.badges_earned.length}
               </p>
             </div>
@@ -253,10 +253,10 @@ export default function GamificationDashboard() {
       {/* Badges and Leaderboard */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Badges Section */}
-        <div className="bg-white rounded-lg shadow">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-              <Medal className="w-5 h-5 mr-2 text-yellow-500" />
+        <div className="bg-background rounded-lg shadow">
+          <div className="px-6 py-4 border-b border-gray-500">
+            <h3 className="text-lg font-semibold text-white flex items-center">
+              <Medal className="w-5 h-5 mr-2 text-yellow" />
               Badges Earned
             </h3>
           </div>
@@ -266,10 +266,10 @@ export default function GamificationDashboard() {
                 {gamificationData.badges_earned.map((badgeId) => (
                   <div
                     key={badgeId}
-                    className="text-center p-4 bg-gray-50 rounded-lg"
+                    className="text-center p-4 bg-background rounded-lg"
                   >
                     <div className="text-3xl mb-2">{getBadgeIcon(badgeId)}</div>
-                    <h4 className="font-medium text-gray-900">
+                    <h4 className="font-medium text-white">
                       {getBadgeName(badgeId)}
                     </h4>
                     <p className="text-sm text-gray-500">
@@ -290,10 +290,10 @@ export default function GamificationDashboard() {
         </div>
 
         {/* Leaderboard Section */}
-        <div className="bg-white rounded-lg shadow">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-              <Trophy className="w-5 h-5 mr-2 text-yellow-500" />
+        <div className="bg-background rounded-lg shadow">
+          <div className="px-6 py-4 border-b border-gray-500">
+            <h3 className="text-lg font-semibold text-white flex items-center">
+              <Trophy className="w-5 h-5 mr-2 text-yellow" />
               Leaderboard
             </h3>
           </div>
@@ -304,27 +304,27 @@ export default function GamificationDashboard() {
                   key={entry.user_address}
                   className={`flex items-center justify-between p-3 rounded-lg ${
                     entry.user_address === address
-                      ? "bg-blue-50 border border-blue-200"
-                      : "bg-gray-50"
+                      ? "bg-purple border border-purple"
+                      : "bg-background"
                   }`}
                 >
                   <div className="flex items-center">
                     <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-200 mr-3">
                       {index === 0 && (
-                        <Crown className="w-4 h-4 text-yellow-500" />
+                        <Crown className="w-4 h-4 text-yellow" />
                       )}
                       {index === 1 && (
-                        <Medal className="w-4 h-4 text-gray-400" />
+                        <Medal className="w-4 h-4 text-gray-500" />
                       )}
                       {index === 2 && (
-                        <Award className="w-4 h-4 text-orange-500" />
+                        <Award className="w-4 h-4 text-orange" />
                       )}
                       {index > 2 && (
                         <span className="text-sm font-medium">{index + 1}</span>
                       )}
                     </div>
                     <div>
-                      <p className="font-medium text-gray-900">
+                      <p className="font-medium text-white">
                         {entry.user_address === address
                           ? "You"
                           : `${entry.user_address.slice(
@@ -339,7 +339,7 @@ export default function GamificationDashboard() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-medium text-gray-900">
+                    <p className="text-sm font-medium text-white">
                       {entry.xp_points} XP
                     </p>
                     <p className="text-xs text-gray-500">
@@ -354,10 +354,10 @@ export default function GamificationDashboard() {
       </div>
 
       {/* Available Badges */}
-      <div className="bg-white rounded-lg shadow">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-            <Zap className="w-5 h-5 mr-2 text-blue-500" />
+      <div className="bg-background rounded-lg shadow">
+        <div className="px-6 py-4 border-b border-gray-500">
+          <h3 className="text-lg font-semibold text-white flex items-center">
+            <Zap className="w-5 h-5 mr-2 text-purple" />
             Available Badges
           </h3>
         </div>
@@ -372,14 +372,14 @@ export default function GamificationDashboard() {
                   key={badge.id}
                   className={`p-4 rounded-lg border-2 ${
                     isEarned
-                      ? "border-green-200 bg-green-50"
-                      : "border-gray-200 bg-gray-50"
+                      ? "border-green bg-green"
+                      : "border-gray-500 bg-background"
                   }`}
                 >
                   <div className="flex items-center mb-2">
                     <span className="text-2xl mr-2">{badge.icon}</span>
                     <div>
-                      <h4 className="font-medium text-gray-900">
+                      <h4 className="font-medium text-white">
                         {badge.name}
                       </h4>
                       <p className="text-xs text-gray-500">
@@ -387,9 +387,9 @@ export default function GamificationDashboard() {
                       </p>
                     </div>
                   </div>
-                  <p className="text-sm text-gray-600">{badge.description}</p>
+                  <p className="text-sm text-gray-500">{badge.description}</p>
                   {isEarned && (
-                    <div className="mt-2 flex items-center text-green-600">
+                    <div className="mt-2 flex items-center text-green">
                       <Star className="w-4 h-4 mr-1" />
                       <span className="text-xs font-medium">Earned</span>
                     </div>

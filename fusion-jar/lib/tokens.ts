@@ -4,12 +4,14 @@ export const SUPPORTED_CHAINS = [
   { id: 1, name: "Ethereum", symbol: "ETH" },
   { id: 137, name: "Polygon", symbol: "MATIC" },
   { id: 56, name: "BNB Smart Chain", symbol: "BSC" },
+  { id: 8453, name: "Base", symbol: "ETH" },
+  { id: 101, name: "Solana", symbol: "SOL" },
 ];
 
 export const TOKENS: TokenInfo[] = [
   // Ethereum tokens
   {
-    address: "0xA0b86a33E6441b8C4C8C8C8C8C8C8C8C8C8C8C8C",
+    address: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
     symbol: "USDC",
     name: "USD Coin",
     decimals: 6,
@@ -54,7 +56,7 @@ export const TOKENS: TokenInfo[] = [
 
   // Polygon tokens
   {
-    address: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+    address: "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359",
     symbol: "USDC",
     name: "USD Coin",
     decimals: 6,
@@ -123,6 +125,108 @@ export const TOKENS: TokenInfo[] = [
     chainId: 56,
     logoURI:
       "https://assets.coingecko.com/coins/images/12632/thumb/IMG_0440.PNG",
+  },
+
+  // Base tokens
+  {
+    address: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+    symbol: "USDC",
+    name: "USD Coin",
+    decimals: 6,
+    chainId: 8453,
+    logoURI:
+      "https://assets.coingecko.com/coins/images/6319/thumb/USD_Coin_icon.png",
+  },
+  {
+    address: "0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb",
+    symbol: "DAI",
+    name: "Dai Stablecoin",
+    decimals: 18,
+    chainId: 8453,
+    logoURI: "https://assets.coingecko.com/coins/images/9956/thumb/4943.png",
+  },
+  {
+    address: "0x4200000000000000000000000000000000000006",
+    symbol: "WETH",
+    name: "Wrapped Ether",
+    decimals: 18,
+    chainId: 8453,
+    logoURI: "https://assets.coingecko.com/coins/images/2518/thumb/weth.png",
+  },
+  {
+    address: "0x2Ae3F1Ec7F1F5012CFEab0185bfc7aa3cf0DEc22",
+    symbol: "cbETH",
+    name: "Coinbase Wrapped Staked ETH",
+    decimals: 18,
+    chainId: 8453,
+    logoURI: "https://assets.coingecko.com/coins/images/27045/thumb/cbeth.png",
+  },
+
+  // Solana tokens
+  {
+    address: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    symbol: "USDC",
+    name: "USD Coin",
+    decimals: 6,
+    chainId: 101,
+    logoURI:
+      "https://assets.coingecko.com/coins/images/6319/thumb/USD_Coin_icon.png",
+  },
+  {
+    address: "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+    symbol: "USDT",
+    name: "Tether USD",
+    decimals: 6,
+    chainId: 101,
+    logoURI: "https://assets.coingecko.com/coins/images/325/thumb/Tether.png",
+  },
+  {
+    address: "So11111111111111111111111111111111111111112",
+    symbol: "SOL",
+    name: "Wrapped SOL",
+    decimals: 9,
+    chainId: 101,
+    logoURI: "https://assets.coingecko.com/coins/images/4128/thumb/solana.png",
+  },
+  {
+    address: "mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So",
+    symbol: "mSOL",
+    name: "Marinade Staked SOL",
+    decimals: 9,
+    chainId: 101,
+    logoURI: "https://assets.coingecko.com/coins/images/17751/thumb/msol.png",
+  },
+  {
+    address: "7dHbWXmci3dT8UFYWYZweBLXgycu7Y3iL6trKn1Y7ARj",
+    symbol: "stSOL",
+    name: "Lido Staked SOL",
+    decimals: 9,
+    chainId: 101,
+    logoURI: "https://assets.coingecko.com/coins/images/15051/thumb/stSOL.png",
+  },
+  {
+    address: "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
+    symbol: "BONK",
+    name: "Bonk",
+    decimals: 5,
+    chainId: 101,
+    logoURI: "https://assets.coingecko.com/coins/images/28600/thumb/bonk.jpg",
+  },
+  {
+    address: "7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr",
+    symbol: "POPCAT",
+    name: "Popcat",
+    decimals: 5,
+    chainId: 101,
+    logoURI: "https://assets.coingecko.com/coins/images/35407/thumb/popcat.png",
+  },
+  {
+    address: "ATEe3MqHCzy4dKMm9DgCvd2cYBKxMTCPPb1ZnLnmbonk",
+    symbol: "BONK",
+    name: "Bonk",
+    decimals: 5,
+    chainId: 101,
+    logoURI: "https://assets.coingecko.com/coins/images/28600/thumb/bonk.jpg",
   },
 ];
 
